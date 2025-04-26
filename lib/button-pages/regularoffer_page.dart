@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
 class RegularofferPage extends StatefulWidget {
-  const RegularofferPage({super.key, required this.operatorName});
+  const RegularofferPage({
+    super.key,
+    required this.operatorName,
+    required this.operatorImagePath,
+  });
 
   final String operatorName;
+  final String operatorImagePath;
 
   @override
   State<RegularofferPage> createState() => _RegularofferPageState();
@@ -90,7 +95,7 @@ class _RegularofferPageState extends State<RegularofferPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
-                          backgroundImage: AssetImage('images/robi.png'),
+                          backgroundImage: AssetImage(widget.operatorImagePath),
                           radius: 18,
                         ),
                       ),
@@ -150,7 +155,6 @@ class _RegularofferPageState extends State<RegularofferPage> {
     );
   }
 
-  // Build each category button
   Widget categoryButton(String text) {
     bool isSelected = selectedCategory == text;
     return GestureDetector(
@@ -177,7 +181,6 @@ class _RegularofferPageState extends State<RegularofferPage> {
     );
   }
 
-  // Build package item card
   Widget buildPackageItem({
     required String title,
     required int price,
@@ -232,7 +235,6 @@ class _RegularofferPageState extends State<RegularofferPage> {
     );
   }
 
-  // Show confirmation dialog when Buy button pressed
   void showBuyConfirmationDialog(String title, int price) {
     showDialog(
       context: context,
@@ -243,7 +245,7 @@ class _RegularofferPageState extends State<RegularofferPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context);
               },
               child: const Text('Cancel'),
             ),

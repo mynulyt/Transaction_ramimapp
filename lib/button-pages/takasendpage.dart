@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 class TakaSendPage extends StatefulWidget {
   final String selectedMethod;
 
-  const TakaSendPage({Key? key, required this.selectedMethod})
-      : super(key: key);
+  const TakaSendPage({super.key, required this.selectedMethod});
 
   @override
   _TakaSendPageState createState() => _TakaSendPageState();
@@ -65,14 +64,14 @@ class _TakaSendPageState extends State<TakaSendPage> {
               textAlign: TextAlign.center,
               maxLines: 6,
               minLines: 4,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "Description",
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 20.0),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
                 border: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.black),
+                  borderSide: BorderSide(color: Colors.black),
                 ),
               ),
             ),

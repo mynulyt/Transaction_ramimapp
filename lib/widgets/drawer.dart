@@ -13,14 +13,16 @@ class HomePage extends StatelessWidget {
   final String firstName = "John";
   final String lastName = "Doe";
 
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Drawer Example'),
+        title: const Text('Drawer Example'),
       ),
       drawer: buildDrawer(firstName, lastName, context),
-      body: Center(
+      body: const Center(
         child: Text('Home Page Content'),
       ),
     );
@@ -33,7 +35,7 @@ Widget buildDrawer(String firstName, String lastName, BuildContext context) {
       padding: EdgeInsets.zero,
       children: [
         DrawerHeader(
-          decoration: BoxDecoration(color: Colors.indigo),
+          decoration: const BoxDecoration(color: Colors.indigo),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -43,25 +45,26 @@ Widget buildDrawer(String firstName, String lastName, BuildContext context) {
                 backgroundColor: Colors.white,
                 child: Text(
                   '${firstName[0]}${lastName[0]}', // First letter of first and last name
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                     color: Colors.indigo,
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 "$firstName $lastName", // Displaying full name
-                style: TextStyle(color: Colors.white, fontSize: 18),
+                style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
-              Text("Account.No:", style: TextStyle(color: Colors.white70)),
+              const Text("Account.No:",
+                  style: TextStyle(color: Colors.white70)),
             ],
           ),
         ),
         ListTile(
-          leading: Icon(Icons.home),
-          title: Text('Home'),
+          leading: const Icon(Icons.home),
+          title: const Text('Home'),
           onTap: () {
             Navigator.pushReplacement(
               context,
@@ -70,96 +73,96 @@ Widget buildDrawer(String firstName, String lastName, BuildContext context) {
           },
         ),
         ListTile(
-          leading: Icon(Icons.live_tv),
-          title: Text('Live Recharge'),
+          leading: const Icon(Icons.live_tv),
+          title: const Text('Live Recharge'),
           onTap: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => SendMoneyPage()),
+              MaterialPageRoute(builder: (context) => const SendMoneyPage()),
             );
           },
         ),
         ListTile(
-          leading: Icon(Icons.notifications),
-          title: Text('Notification'),
+          leading: const Icon(Icons.notifications),
+          title: const Text('Notification'),
           onTap: () {},
         ),
         ListTile(
-          leading: Icon(Icons.security),
-          title: Text('Two Step'),
+          leading: const Icon(Icons.security),
+          title: const Text('Two Step'),
           onTap: () {
             // Handle Two Step click
             print("Two Step clicked");
           },
         ),
         ListTile(
-          leading: Icon(Icons.pin),
-          title: Text('Change PIN'),
+          leading: const Icon(Icons.pin),
+          title: const Text('Change PIN'),
           onTap: () {
             // Handle Change PIN click
             print("Change PIN clicked");
           },
         ),
         ListTile(
-          leading: Icon(Icons.lock_open),
-          title: Text('Change Password'),
+          leading: const Icon(Icons.lock_open),
+          title: const Text('Change Password'),
           onTap: () {
             // Handle Change Password click
             print("Change Password clicked");
           },
         ),
         ListTile(
-          leading: Icon(Icons.logout),
-          title: Text('Log Out'),
+          leading: const Icon(Icons.logout),
+          title: const Text('Log Out'),
           onTap: () {
             // Handle Log Out click
             print("Log Out clicked");
           },
         ),
-        Divider(),
+        const Divider(),
         ListTile(
-          leading: Icon(Icons.language),
-          title: Text('Language'),
+          leading: const Icon(Icons.language),
+          title: const Text('Language'),
           onTap: () {
             // Handle Language click
             print("Language clicked");
           },
         ),
         ListTile(
-          leading: Icon(Icons.send),
-          title: Text('Refer'),
+          leading: const Icon(Icons.send),
+          title: const Text('Refer'),
           onTap: () {
             // Handle Refer click
             print("Refer clicked");
           },
         ),
         ListTile(
-          leading: Icon(Icons.share),
-          title: Text('Share'),
+          leading: const Icon(Icons.share),
+          title: const Text('Share'),
           onTap: () {
             // Handle Share click
             print("Share clicked");
           },
         ),
         ListTile(
-          leading: Icon(Icons.report_problem),
-          title: Text('Complain'),
+          leading: const Icon(Icons.report_problem),
+          title: const Text('Complain'),
           onTap: () {
             // Handle Complain click
             print("Complain clicked");
           },
         ),
         ListTile(
-          leading: Icon(Icons.phone),
-          title: Text('Helpline'),
+          leading: const Icon(Icons.phone),
+          title: const Text('Helpline'),
           onTap: () {
             // Handle Helpline click
             print("Helpline clicked");
           },
         ),
         ListTile(
-          leading: Icon(Icons.privacy_tip),
-          title: Text('Privacy Policy'),
+          leading: const Icon(Icons.privacy_tip),
+          title: const Text('Privacy Policy'),
           onTap: () {
             // Handle Privacy Policy click
             print("Privacy Policy clicked");

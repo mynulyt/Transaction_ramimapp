@@ -15,37 +15,36 @@ class TransferMethodPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        
         child: Padding(
           padding: const EdgeInsets.only(top: 12.0),
           child: Column(
-            
             children: [
               TextField(
-                
                 controller: numberController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                   filled: true,
-            fillColor: Colors.grey.withOpacity(0.3),
+                  fillColor: Colors.grey.withOpacity(0.3),
                   prefixIcon: const Icon(Icons.phone, color: Colors.green),
                   hintText: "AC Mobile Number",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                     borderSide: BorderSide.none,
+                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>TransferConfirmPage()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => TransferConfirmPage()));
                 },
                 style: ElevatedButton.styleFrom(
-                
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                    side:BorderSide(color: Colors.green),
+                    side: const BorderSide(color: Colors.green),
                   ),
                 ),
                 child: const Padding(

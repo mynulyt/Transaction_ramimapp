@@ -16,6 +16,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -24,12 +26,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
-      home: LoginPage(),
+      home: const LoginPage(),
     );
   }
 }
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -56,7 +60,7 @@ class _MainScreenState extends State<MainScreen> {
         index: _selectedIndex,
         children: [
           buildHomeScreen(),
-          Center(child: Text("History Screen")),
+          const Center(child: Text("History Screen")),
           const TallyKhataPage(), // Tally Khata page in the stack
         ],
       ),
@@ -84,7 +88,7 @@ class _MainScreenState extends State<MainScreen> {
             border: Border.all(color: Colors.indigo),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
+          child: const Row(
             children: [
               CircleAvatar(
                 radius: 30, // Adjusted size for the avatar
@@ -97,10 +101,10 @@ class _MainScreenState extends State<MainScreen> {
                       color: Colors.white),
                 ),
               ),
-              const SizedBox(width: 20),
+              SizedBox(width: 20),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text("Mynul Alam",
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -179,36 +183,46 @@ class _MainScreenState extends State<MainScreen> {
             crossAxisSpacing: 15,
             children: [
               buildGridButton("Taka Send", Icons.send, () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => SendMoneyPage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SendMoneyPage()));
               }),
               buildGridButton("Recharge", Icons.phone_android, () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => RechargePage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const RechargePage()));
               }),
               buildGridButton("Add Balance", Icons.account_balance_wallet, () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => AddBalanceMethodPage()));
+                        builder: (context) => const AddBalanceMethodPage()));
               }),
               buildGridButton("Add User", Icons.person_add, () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => AddUserPage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AddUserPage()));
               }),
               buildGridButton("My User", Icons.group, () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => MyUserMethod()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const MyUserMethod()));
               }),
               buildGridButton("Transfer", Icons.sync_alt, () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => TransferMethodPage()));
+                        builder: (context) => const TransferMethodPage()));
               }),
               buildGridButton("Regular Offer", Icons.local_offer, () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => OfferMethodPage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const OfferMethodPage()));
               }),
             ],
           ),

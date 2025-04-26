@@ -15,10 +15,10 @@ class LoginPage extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              Container(
+              SizedBox(
                 height: 100,
                 width: 100,
-                child: CircleAvatar(
+                child: const CircleAvatar(
                   radius: 40,
                   backgroundImage: AssetImage('images/logo.jpg'),
                 ),
@@ -122,9 +122,9 @@ class LoginPage extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.withOpacity(0.5))),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: const [
+                  children: [
                     _SocialIcon(
                       icon: Icons.call_end,
                       label: "Whatsapp",

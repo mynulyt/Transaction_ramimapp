@@ -47,7 +47,7 @@ class AddUserPage extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(color: Colors.green)),
+                        side: const BorderSide(color: Colors.green)),
                   ),
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),

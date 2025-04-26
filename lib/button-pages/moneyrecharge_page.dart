@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 class MoneyRechargePage extends StatefulWidget {
   final String operatorName;
 
-  const MoneyRechargePage({Key? key, required this.operatorName})
-      : super(key: key);
+  const MoneyRechargePage({super.key, required this.operatorName});
 
   @override
   _MoneyRechargePageState createState() => _MoneyRechargePageState();
@@ -35,15 +34,15 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
                 hintText: "Enter your ${widget.operatorName} number",
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+                contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16.0, horizontal: 20.0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0),
-                  borderSide: BorderSide(color: Colors.black),
+                  borderSide: const BorderSide(color: Colors.black),
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
@@ -52,22 +51,22 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
                 hintText: "Amount",
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+                contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16.0, horizontal: 20.0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0),
-                  borderSide: BorderSide(color: Colors.black),
+                  borderSide: const BorderSide(color: Colors.black),
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextField(
               controller: descriptionController,
               keyboardType: TextInputType.multiline,
               textAlign: TextAlign.center,
               maxLines: 6,
               minLines: 4,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "Description",
                 filled: true,
                 fillColor: Colors.white,
@@ -78,12 +77,12 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
                 // You can handle recharge logic here
               },
-              child: Text("Confirm"),
+              child: const Text("Confirm"),
             ),
           ],
         ),

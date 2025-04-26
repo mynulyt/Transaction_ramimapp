@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
 
 class AddBalanceVerifyPage extends StatefulWidget {
-  const AddBalanceVerifyPage({Key? key}) : super(key: key);
+  const AddBalanceVerifyPage({super.key});
 
   @override
   State<AddBalanceVerifyPage> createState() => _AddBalanceVerifyPageState();
@@ -191,7 +191,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
                                             height: 20,
                                             width: 20,
                                             padding: const EdgeInsets.all(2),
-                                            decoration: BoxDecoration(
+                                            decoration: const BoxDecoration(
                                               color: Colors.yellow,
                                             ),
                                             child: Image.asset(
@@ -201,8 +201,8 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
                                           ),
                                         ),
                                         const SizedBox(width: 10),
-                                        Center(
-                                          child: const Text(
+                                        const Center(
+                                          child: Text(
                                             'Please fill out this field.',
                                             style: TextStyle(
                                                 color: Colors.red,

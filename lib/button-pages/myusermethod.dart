@@ -54,19 +54,21 @@ class _MyUserMethodState extends State<MyUserMethod> {
               children: [
                 const Icon(Icons.person, color: Colors.green, size: 40),
                 const SizedBox(width: 10),
-                Expanded( 
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
                         'জেসমিন',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      const Text('01963696783', style: TextStyle(color: Colors.red)),
+                      const Text('01963696783',
+                          style: TextStyle(color: Colors.red)),
                       const SizedBox(height: 4),
-                      Row(
+                      const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Text('VIP'),
                           Spacer(),
                           Text('Active', style: TextStyle(color: Colors.green)),
@@ -80,7 +82,8 @@ class _MyUserMethodState extends State<MyUserMethod> {
                           IconButton(
                             icon: const Icon(Icons.arrow_drop_down),
                             color: Colors.black54,
-                            onPressed: _toggleCardVisibility, // Call toggle function on click
+                            onPressed:
+                                _toggleCardVisibility, // Call toggle function on click
                           ),
                         ],
                       ),
@@ -94,15 +97,18 @@ class _MyUserMethodState extends State<MyUserMethod> {
               Padding(
                 padding: const EdgeInsets.only(left: 30),
                 child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   elevation: 3,
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('sanjidllc466@gmail.com', style: TextStyle(color: Colors.red)),
-                        const Text('Created: 22-04-2025 12:19 PM', style: TextStyle(color: Colors.green)),
+                        const Text('sanjidllc466@gmail.com',
+                            style: TextStyle(color: Colors.red)),
+                        const Text('Created: 22-04-2025 12:19 PM',
+                            style: TextStyle(color: Colors.green)),
                         const SizedBox(height: 8),
                         ...[
                           'Main: ৳0.00',
@@ -111,7 +117,7 @@ class _MyUserMethodState extends State<MyUserMethod> {
                           'Shop: ৳0.00',
                           'Due: ৳0.00',
                           'Advance: ৳0.00',
-                        ].map((e) => Text(e)).toList(),
+                        ].map((e) => Text(e)),
                         const SizedBox(height: 8),
                         const Text(
                           'খুলনা,মেহেদিবাগ,সুবিশালহাস,ghfh,chgc',
@@ -124,7 +130,7 @@ class _MyUserMethodState extends State<MyUserMethod> {
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
-                                side: BorderSide(color: Colors.green),
+                                side: const BorderSide(color: Colors.green),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
@@ -138,7 +144,7 @@ class _MyUserMethodState extends State<MyUserMethod> {
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
-                                side: BorderSide(color: Colors.green),
+                                side: const BorderSide(color: Colors.green),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),

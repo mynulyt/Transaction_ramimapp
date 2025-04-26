@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ramimapp/button-pages/moneyrecharge_page.dart';
 
 class RechargePage extends StatelessWidget {
-  const RechargePage({Key? key}) : super(key: key);
+  const RechargePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +41,7 @@ class OperatorBox extends StatelessWidget {
   final String name;
   final String imagePath;
 
-  const OperatorBox({Key? key, required this.name, required this.imagePath})
-      : super(key: key);
+  const OperatorBox({super.key, required this.name, required this.imagePath});
 
   @override
   Widget build(BuildContext context) {

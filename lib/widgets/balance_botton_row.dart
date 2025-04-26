@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 class BalanceButtonRow extends StatefulWidget {
+  const BalanceButtonRow({super.key});
+
   @override
   _BalanceButtonRowState createState() => _BalanceButtonRowState();
 }
 
 class _BalanceButtonRowState extends State<BalanceButtonRow> {
   bool _showBalance = false;
-  double _balance = 1234.56; // You can set your balance here.
+  final double _balance = 1234.56; // You can set your balance here.
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class _BalanceButtonRowState extends State<BalanceButtonRow> {
             style: ElevatedButton.styleFrom(
               shape: const CircleBorder(),
               padding: const EdgeInsets.all(20),
-              backgroundColor: Color.fromARGB(255, 169, 123, 167),
+              backgroundColor: const Color.fromARGB(255, 169, 123, 167),
             ),
             child: Text(
               _showBalance ? "\$$_balance" : "Tap for\nBalance",

@@ -156,6 +156,7 @@ class PaymentImage extends StatelessWidget {
   final Function(String, String) onTap;
 
   const PaymentImage({
+    super.key,
     required this.imagePath,
     required this.methodName,
     required this.onTap,

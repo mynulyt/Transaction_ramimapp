@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ramimapp/button-pages/takasendpage.dart';
 
 class SendMoneyPage extends StatelessWidget {
-  const SendMoneyPage({Key? key}) : super(key: key);
+  const SendMoneyPage({super.key});
 
   void navigateToSendPage(BuildContext context, String method) {
     Navigator.push(

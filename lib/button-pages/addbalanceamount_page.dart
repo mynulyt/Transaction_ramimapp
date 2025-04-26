@@ -6,10 +6,10 @@ class AddBalanceAmountPage extends StatefulWidget {
   final String imagePath;
 
   const AddBalanceAmountPage({
-    Key? key,
+    super.key,
     required this.paymentMethod,
     required this.imagePath,
-  }) : super(key: key);
+  });
 
   @override
   _AddBalanceAmountPageState createState() => _AddBalanceAmountPageState();
@@ -125,7 +125,7 @@ class _AddBalanceAmountPageState extends State<AddBalanceAmountPage> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                          AddBalanceVerifyPage()),
+                                          const AddBalanceVerifyPage()),
                                 );
                               },
                               icon: const Icon(Icons.ads_click),
