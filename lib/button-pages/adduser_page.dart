@@ -22,9 +22,21 @@ class AddUserPage extends StatelessWidget {
             buildTextField(Icons.calendar_today, "Date of Birth"),
             buildTextField(Icons.lock, "Password", obscureText: true),
             buildTextField(Icons.vpn_key, "Pin", obscureText: true),
-            buildDropdown(Icons.map, "Select Division", items: []),
-            buildTextField(null, "VIP(Fee: ৳.0)", enabled: false),
-            buildTextField(null, "লিঙ্গ"),
+            buildGenderDropdown(Icons.person, "Select Gender"),
+            buildAutoCompleteField(
+              icon: Icons.map,
+              labelText: "Select Address",
+              options: [
+                'Dhaka',
+                'Chittagong',
+                'Khulna',
+                'Sylhet',
+                'Barisal',
+                'Rajshahi',
+                'Rangpur',
+                'Mymensingh'
+              ],
+            ),
             buildTextField(Icons.vpn_key, "My Pin", obscureText: true),
             const SizedBox(height: 20),
             Row(
