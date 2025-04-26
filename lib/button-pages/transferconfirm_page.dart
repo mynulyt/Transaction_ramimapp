@@ -51,13 +51,13 @@ class TransferConfirmPage extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
-                      side: const BorderSide(color: Colors.green),
+                      side: const BorderSide(color: Colors.indigo),
                     ),
                   ),
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                     child:
-                        Text("Confirm", style: TextStyle(color: Colors.green)),
+                        Text("Confirm", style: TextStyle(color: Colors.indigo)),
                   ),
                 ),
               ],

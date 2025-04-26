@@ -40,16 +40,9 @@ class _MainScreenState extends State<MainScreen> {
   double balance = 1234.56;
 
   void _onItemTapped(int index) {
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const TallyKhataPage()),
-      );
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -58,12 +51,13 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         title: const Text("RamimPay"),
       ),
-      drawer: buildDrawer(),
+      drawer: buildDrawer('Mynul', 'Alam'),
       body: IndexedStack(
         index: _selectedIndex,
         children: [
           buildHomeScreen(),
           Center(child: Text("History Screen")),
+          const TallyKhataPage(), // Tally Khata page in the stack
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -92,16 +86,27 @@ class _MainScreenState extends State<MainScreen> {
           ),
           child: Row(
             children: [
-              CircleAvatar(radius: 30, backgroundColor: Colors.indigo),
+              CircleAvatar(
+                radius: 30, // Adjusted size for the avatar
+                backgroundColor: Colors.indigo,
+                child: Text(
+                  'MA', // First and last initial (Mynul Alam)
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+              ),
               const SizedBox(width: 20),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text("Name",
+                  Text("Mynul Alam",
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text("Gold",
-                      style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  Text("Account No: 123456789",
+                      style: TextStyle(
+                          fontSize: 14, color: Colors.grey)), // Account number
                 ],
               ),
             ],
@@ -134,7 +139,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   child: Text(
                     showBalance
-                        ? "\$${balance.toStringAsFixed(2)}"
+                        ? "৳${balance.toStringAsFixed(2)}" // Using ৳ for balance
                         : "Tap to\nShow Balance",
                     textAlign: TextAlign.center,
                     style: const TextStyle(

@@ -17,7 +17,7 @@ class TallyKhataScreen extends StatelessWidget {
     Widget iconWidget;
 
     if (iconOrImage is IconData) {
-      iconWidget = Icon(iconOrImage, color: Colors.green);
+      iconWidget = Icon(iconOrImage, color: Colors.indigo);
     } else if (iconOrImage is String) {
       iconWidget = Image.asset(
         iconOrImage,
@@ -56,11 +56,11 @@ class TallyKhataScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.indigo,
         title: const Text('Ramim Pay'),
         centerTitle: true,
       ),
-      drawer: buildDrawer(),
+      drawer: buildDrawer('Mynul', 'Alam'),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +89,7 @@ class TallyKhataScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Divider(color: Colors.green),
+                  const Divider(color: Colors.indigo),
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
