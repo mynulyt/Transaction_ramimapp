@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ramimapp/button-pages/sendmoney_page.dart';
+
+import 'package:ramimapp/main.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -16,7 +19,7 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Drawer Example'),
       ),
-      drawer: buildDrawer(firstName, lastName),
+      drawer: buildDrawer(firstName, lastName, context),
       body: Center(
         child: Text('Home Page Content'),
       ),
@@ -24,7 +27,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-Widget buildDrawer(String firstName, String lastName) {
+Widget buildDrawer(String firstName, String lastName, BuildContext context) {
   return Drawer(
     child: ListView(
       padding: EdgeInsets.zero,
@@ -60,25 +63,26 @@ Widget buildDrawer(String firstName, String lastName) {
           leading: Icon(Icons.home),
           title: Text('Home'),
           onTap: () {
-            // Handle Home click
-            print("Home clicked");
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MainScreen()),
+            );
           },
         ),
         ListTile(
           leading: Icon(Icons.live_tv),
           title: Text('Live Recharge'),
           onTap: () {
-            // Handle Live Recharge click
-            print("Live Recharge clicked");
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => SendMoneyPage()),
+            );
           },
         ),
         ListTile(
           leading: Icon(Icons.notifications),
           title: Text('Notification'),
-          onTap: () {
-            // Handle Notification click
-            print("Notification clicked");
-          },
+          onTap: () {},
         ),
         ListTile(
           leading: Icon(Icons.security),

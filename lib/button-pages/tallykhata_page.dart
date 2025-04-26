@@ -60,7 +60,7 @@ class TallyKhataScreen extends StatelessWidget {
         title: const Text('Ramim Pay'),
         centerTitle: true,
       ),
-      drawer: buildDrawer('Mynul', 'Alam'),
+      drawer: buildDrawer('Mynul', 'Alam', context),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
