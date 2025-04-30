@@ -15,10 +15,10 @@ class LoginPage extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              SizedBox(
+              const SizedBox(
                 height: 100,
                 width: 100,
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 40,
                   backgroundImage: AssetImage('images/logo.jpg'),
                 ),
@@ -43,7 +43,7 @@ class LoginPage extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => MainScreen()),
+                                builder: (context) => const MainScreen()),
                           );
                         },
                         style: OutlinedButton.styleFrom(

@@ -12,7 +12,7 @@ import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/widgets/drawer.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

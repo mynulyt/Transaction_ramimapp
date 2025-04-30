@@ -4,7 +4,7 @@ import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/main.dart';
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: HomePage(),
   ));
 }
@@ -68,7 +68,7 @@ Widget buildDrawer(String firstName, String lastName, BuildContext context) {
           onTap: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => MainScreen()),
+              MaterialPageRoute(builder: (context) => const MainScreen()),
             );
           },
         ),
