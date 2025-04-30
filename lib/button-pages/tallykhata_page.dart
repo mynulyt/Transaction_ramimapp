@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ramimapp/widgets/drawer.dart';
 
 class TallyKhataPage extends StatelessWidget {
   const TallyKhataPage({super.key});
@@ -55,12 +54,6 @@ class TallyKhataScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.indigo,
-        title: const Text('Ramim Pay'),
-        centerTitle: true,
-      ),
-      drawer: buildDrawer('Mynul', 'Alam', context),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

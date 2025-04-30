@@ -5,6 +5,7 @@ import 'package:ramimapp/AdminPanel/Admin_panel/transactionhistory_page.dart';
 
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
+import 'package:ramimapp/button-pages/regularoffer_page.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 
@@ -63,6 +64,11 @@ class AdminPanelPage extends StatelessWidget {
                         horizontal: 8.0, vertical: 4.0),
                     child: ElevatedButton(
                       onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RegularofferPage(
+                                    operatorName: '', operatorImagePath: '')));
                         // Navigate to Delete Offer Page
                       },
                       style: ElevatedButton.styleFrom(
@@ -149,6 +155,17 @@ class AdminPanelPage extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: color,
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                height: 20,
+                width: 20,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.redAccent,
                 ),
               ),
             ],

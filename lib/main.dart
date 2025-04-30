@@ -53,7 +53,14 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("RamimPay"),
+        backgroundColor: Colors.indigo,
+        title: const Text(
+          "RamimPay",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       drawer: buildDrawer('Mynul', 'Alam', context),
       body: IndexedStack(
