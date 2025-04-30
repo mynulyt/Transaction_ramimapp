@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
 import 'package:ramimapp/main.dart';
 import 'package:ramimapp/registration_page.dart';
 
@@ -142,7 +143,7 @@ class LoginPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const RegistrationPage()),
+                          builder: (context) => const AdminLoginPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
