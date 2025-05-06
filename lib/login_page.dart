@@ -45,8 +45,11 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     _buildTextField(Icons.phone, "Mobile number",
                         controller: phoneController),
+                    SizedBox(
+                      height: 20,
+                    ),
                     _buildTextField(Icons.password, "Enter password",
-                        controller: passwordController),
+                        controller: passwordController, obscure: true),
                     const SizedBox(height: 20),
                     SizedBox(
                       width: 390,
