@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 Widget buildTextField(IconData? icon, String labelText,
-    {bool obscureText = false, bool enabled = true}) {
+    {bool obscureText = false,
+    bool enabled = true,
+    required TextEditingController controller}) {
   return Container(
     height: 65,
     margin: const EdgeInsets.symmetric(vertical: 6),
@@ -58,6 +60,7 @@ Widget buildAutoCompleteField({
   required IconData icon,
   required String labelText,
   required List<String> options,
+  required Null Function(dynamic value) onChanged,
 }) {
   return Container(
     margin: const EdgeInsets.symmetric(vertical: 8),

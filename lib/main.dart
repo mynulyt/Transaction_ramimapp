@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+// Other imports...
 import 'package:ramimapp/button-pages/addbalancemethod_page.dart';
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
@@ -8,28 +11,7 @@ import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transfermethod_page.dart';
-import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/widgets/drawer.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'RamimPay',
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-      ),
-      home: const LoginPage(),
-    );
-  }
-}
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -41,9 +23,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   bool showBalance = false;
-  double balance = 1234.56;
-  double advance = 120.0;
-  double due = 300.0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -53,6 +32,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.indigo,
@@ -68,7 +49,9 @@ class _MainScreenState extends State<MainScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          buildHomeScreen(),
+          user != null
+              ? buildHomeScreen(user.uid)
+              : const Center(child: Text('Please log in.')),
           const Center(child: Text("History Screen")),
           const TallyKhataPage(),
         ],
@@ -87,162 +70,184 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget buildHomeScreen() {
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.all(10),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.indigo),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.indigo,
-                child: Text(
-                  'MA',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
+  Widget buildHomeScreen(String uid) {
+    return StreamBuilder<DocumentSnapshot>(
+      stream:
+          FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Center(child: Text("No user data found."));
+        }
+
+        final data = snapshot.data!.data() as Map<String, dynamic>;
+        final double balance = (data['balance'] ?? 0).toDouble();
+        final double advance = (data['advance'] ?? 0).toDouble();
+        final double due = (data['due'] ?? 0).toDouble();
+
+        return Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.indigo),
+                borderRadius: BorderRadius.circular(12),
               ),
-              SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: const Row(
                 children: [
-                  Text("Mynul Alam",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text("Account No: 123456789",
-                      style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.indigo,
+                    child: Text(
+                      'MA',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 20),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Mynul Alam",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text("Account No: 123456789",
+                          style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 15.0, bottom: 5),
-              child: Text("Account Balance",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      showBalance = !showBalance;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 30, horizontal: 40),
-                    backgroundColor: Colors.indigo,
-                  ),
-                  child: Text(
-                    showBalance
-                        ? "৳${balance.toStringAsFixed(2)}"
-                        : "Tap to\nShow Balance",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                const Padding(
+                  padding: EdgeInsets.only(left: 15.0, bottom: 5),
+                  child: Text("Account Balance",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.trending_up, color: Colors.green),
-                        const SizedBox(width: 5),
-                        Text("Advance: ৳${advance.toStringAsFixed(2)}",
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w600)),
-                      ],
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          showBalance = !showBalance;
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 30, horizontal: 40),
+                        backgroundColor: Colors.indigo,
+                      ),
+                      child: Text(
+                        showBalance
+                            ? "৳${balance.toStringAsFixed(2)}"
+                            : "Tap to\nShow Balance",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 5),
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.warning, color: Colors.redAccent),
-                        const SizedBox(width: 5),
-                        Text("Due: ৳${due.toStringAsFixed(2)}",
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w600)),
+                        Row(
+                          children: [
+                            const Icon(Icons.trending_up, color: Colors.green),
+                            const SizedBox(width: 5),
+                            Text("Advance: ৳${advance.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            const Icon(Icons.warning, color: Colors.redAccent),
+                            const SizedBox(width: 5),
+                            Text("Due: ৳${due.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
                       ],
                     ),
                   ],
                 ),
               ],
             ),
+            const Divider(height: 30),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 3,
+                padding: const EdgeInsets.all(10),
+                mainAxisSpacing: 15,
+                crossAxisSpacing: 15,
+                children: [
+                  buildGridButton("Taka Send", Icons.send, () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SendMoneyPage()));
+                  }),
+                  buildGridButton("Recharge", Icons.phone_android, () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const RechargePage()));
+                  }),
+                  buildGridButton("Add Balance", Icons.account_balance_wallet,
+                      () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const AddBalanceMethodPage()));
+                  }),
+                  buildGridButton("Add User", Icons.person_add, () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const AddUserPage()));
+                  }),
+                  buildGridButton("My User", Icons.group, () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const MyUserMethod()));
+                  }),
+                  buildGridButton("Transfer", Icons.sync_alt, () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const TransferMethodPage()));
+                  }),
+                  buildGridButton("Regular Offer", Icons.local_offer, () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const OfferMethodPage()));
+                  }),
+                ],
+              ),
+            ),
           ],
-        ),
-        const Divider(height: 30),
-        Expanded(
-          child: GridView.count(
-            crossAxisCount: 3,
-            padding: const EdgeInsets.all(10),
-            mainAxisSpacing: 15,
-            crossAxisSpacing: 15,
-            children: [
-              buildGridButton("Taka Send", Icons.send, () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const SendMoneyPage()));
-              }),
-              buildGridButton("Recharge", Icons.phone_android, () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const RechargePage()));
-              }),
-              buildGridButton("Add Balance", Icons.account_balance_wallet, () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddBalanceMethodPage()));
-              }),
-              buildGridButton("Add User", Icons.person_add, () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddUserPage()));
-              }),
-              buildGridButton("My User", Icons.group, () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const MyUserMethod()));
-              }),
-              buildGridButton("Transfer", Icons.sync_alt, () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const TransferMethodPage()));
-              }),
-              buildGridButton("Regular Offer", Icons.local_offer, () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const OfferMethodPage()));
-              }),
-            ],
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

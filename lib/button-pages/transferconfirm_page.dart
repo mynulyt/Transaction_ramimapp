@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-
 import 'package:ramimapp/textFieldWidget.dart';
 
 class TransferConfirmPage extends StatelessWidget {
   TransferConfirmPage({super.key});
 
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
+  final TextEditingController mainController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController pinController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +22,11 @@ class TransferConfirmPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            buildTextField(Icons.phone, "01936......"),
-            buildTextField(Icons.person_2, "Name"),
-            buildTextField(Icons.money, "Amount"),
-            buildTextField(Icons.home, "Main"),
+            buildTextField(Icons.phone, "01936......",
+                controller: phoneController),
+            buildTextField(Icons.person_2, "Name", controller: nameController),
+            buildTextField(Icons.money, "Amount", controller: amountController),
+            buildTextField(Icons.home, "Main", controller: mainController),
             const SizedBox(height: 8),
             TextField(
               controller: descriptionController,
@@ -41,13 +46,16 @@ class TransferConfirmPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            buildTextField(Icons.key, "Enter Pin Code", obscureText: true),
+            buildTextField(Icons.key, "Enter Pin Code",
+                obscureText: true, controller: pinController),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Add your transfer logic here
+                  },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),

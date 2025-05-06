@@ -4,6 +4,17 @@ import 'package:ramimapp/textFieldWidget.dart';
 class AddUserPage extends StatelessWidget {
   const AddUserPage({super.key});
 
+  // Controllers for all text fields
+  static final TextEditingController nameController = TextEditingController();
+  static final TextEditingController mobileController = TextEditingController();
+  static final TextEditingController emailController = TextEditingController();
+  static final TextEditingController nidController = TextEditingController();
+  static final TextEditingController dobController = TextEditingController();
+  static final TextEditingController passwordController =
+      TextEditingController();
+  static final TextEditingController pinController = TextEditingController();
+  static final TextEditingController myPinController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,13 +26,18 @@ class AddUserPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            buildTextField(Icons.person, "Name"),
-            buildTextField(Icons.phone, "Mobile number"),
-            buildTextField(Icons.email, "Email"),
-            buildTextField(Icons.credit_card, "National ID Card Number"),
-            buildTextField(Icons.calendar_today, "Date of Birth"),
-            buildTextField(Icons.lock, "Password", obscureText: true),
-            buildTextField(Icons.vpn_key, "Pin", obscureText: true),
+            buildTextField(Icons.person, "Name", controller: nameController),
+            buildTextField(Icons.phone, "Mobile number",
+                controller: mobileController),
+            buildTextField(Icons.email, "Email", controller: emailController),
+            buildTextField(Icons.credit_card, "National ID Card Number",
+                controller: nidController),
+            buildTextField(Icons.calendar_today, "Date of Birth",
+                controller: dobController),
+            buildTextField(Icons.lock, "Password",
+                obscureText: true, controller: passwordController),
+            buildTextField(Icons.vpn_key, "Pin",
+                obscureText: true, controller: pinController),
             buildGenderDropdown(Icons.person, "Select Gender"),
             buildAutoCompleteField(
               icon: Icons.map,
@@ -36,18 +52,24 @@ class AddUserPage extends StatelessWidget {
                 'Rangpur',
                 'Mymensingh'
               ],
+              onChanged: (value) {},
             ),
-            buildTextField(Icons.vpn_key, "My Pin", obscureText: true),
+            buildTextField(Icons.vpn_key, "My Pin",
+                obscureText: true, controller: myPinController),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // You can collect all data here using controllers
+                    // Example: print(nameController.text);
+                  },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: const BorderSide(color: Colors.green)),
+                      borderRadius: BorderRadius.circular(20),
+                      side: const BorderSide(color: Colors.green),
+                    ),
                   ),
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
