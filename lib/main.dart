@@ -42,6 +42,8 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   bool showBalance = false;
   double balance = 1234.56;
+  double advance = 120.0;
+  double due = 300.0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -68,7 +70,7 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           buildHomeScreen(),
           const Center(child: Text("History Screen")),
-          const TallyKhataPage(), // Tally Khata page in the stack
+          const TallyKhataPage(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -98,10 +100,10 @@ class _MainScreenState extends State<MainScreen> {
           child: const Row(
             children: [
               CircleAvatar(
-                radius: 30, // Adjusted size for the avatar
+                radius: 30,
                 backgroundColor: Colors.indigo,
                 child: Text(
-                  'MA', // First and last initial (Mynul Alam)
+                  'MA',
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -116,8 +118,7 @@ class _MainScreenState extends State<MainScreen> {
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   Text("Account No: 123456789",
-                      style: TextStyle(
-                          fontSize: 14, color: Colors.grey)), // Account number
+                      style: TextStyle(fontSize: 14, color: Colors.grey)),
                 ],
               ),
             ],
@@ -150,7 +151,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   child: Text(
                     showBalance
-                        ? "৳${balance.toStringAsFixed(2)}" // Using ৳ for balance
+                        ? "৳${balance.toStringAsFixed(2)}"
                         : "Tap to\nShow Balance",
                     textAlign: TextAlign.center,
                     style: const TextStyle(
@@ -165,14 +166,21 @@ class _MainScreenState extends State<MainScreen> {
                   children: [
                     Row(
                       children: [
-                        Checkbox(value: false, onChanged: (_) {}),
-                        const Text("Advance", style: TextStyle(fontSize: 14)),
+                        const Icon(Icons.trending_up, color: Colors.green),
+                        const SizedBox(width: 5),
+                        Text("Advance: ৳${advance.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w600)),
                       ],
                     ),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
-                        Checkbox(value: false, onChanged: (_) {}),
-                        const Text("Due", style: TextStyle(fontSize: 14)),
+                        const Icon(Icons.warning, color: Colors.redAccent),
+                        const SizedBox(width: 5),
+                        Text("Due: ৳${due.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -237,26 +245,26 @@ class _MainScreenState extends State<MainScreen> {
       ],
     );
   }
+}
 
-  Widget buildGridButton(String label, IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.indigo.shade100,
-            child: Icon(icon, size: 30, color: Colors.indigo),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
+Widget buildGridButton(String label, IconData icon, VoidCallback onTap) {
+  return InkWell(
+    onTap: onTap,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircleAvatar(
+          radius: 30,
+          backgroundColor: Colors.indigo.shade100,
+          child: Icon(icon, size: 30, color: Colors.indigo),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ],
+    ),
+  );
 }

@@ -95,11 +95,11 @@ class TallyKhataScreen extends StatelessWidget {
                           Icons.card_travel_outlined, 'Today\'s Sales', '৳0'),
                       _buildStatItem("images/iwg.png", 'I will give', '৳0'),
                       _buildStatItem(Icons.money, 'Total Cash', '৳0'),
-                      _buildStatItem(Icons.receipt, 'Today\'s Receipts', '৳0'),
-                      _buildStatItem(Icons.payment, 'Today\'s Payments', '৳0'),
-                      _buildStatItem(
-                          Icons.calendar_today, 'Due collection', '৳0'),
-                      _buildStatItem(Icons.coffee, 'Today\'s Expenses', '৳0'),
+                      // _buildStatItem(Icons.receipt, 'Today\'s Receipts', '৳0'),
+                      // _buildStatItem(Icons.payment, 'Today\'s Payments', '৳0'),
+                      // _buildStatItem(
+                      //     Icons.calendar_today, 'Due collection', '৳0'),
+                      // _buildStatItem(Icons.coffee, 'Today\'s Expenses', '৳0'),
                     ],
                   ),
                 ],

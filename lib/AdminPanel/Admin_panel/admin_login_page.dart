@@ -45,7 +45,7 @@ class AdminLoginPage extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => AdminPanelPage()),
+                                builder: (context) => const AdminPanelPage()),
                           );
                         },
                         style: OutlinedButton.styleFrom(

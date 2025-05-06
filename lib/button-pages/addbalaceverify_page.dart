@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
+import 'package:url_launcher/url_launcher.dart';
 
 class AddBalanceVerifyPage extends StatefulWidget {
-  const AddBalanceVerifyPage({super.key});
+  final String method; // e.g., "bKash", "Nagad", etc.
+  final String amount; // Amount passed from previous page
+
+  const AddBalanceVerifyPage({
+    super.key,
+    required this.method,
+    required this.amount,
+  });
 
   @override
   State<AddBalanceVerifyPage> createState() => _AddBalanceVerifyPageState();
@@ -11,324 +18,256 @@ class AddBalanceVerifyPage extends StatefulWidget {
 class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _trxIdController = TextEditingController();
+  final TextEditingController _senderNumberController = TextEditingController();
   bool _showError = false;
 
-  // Function to handle the phone number click
   Future<void> _launchPhoneDialer(String phoneNumber) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunch(phoneUri.toString())) {
-      await launch(phoneUri.toString());
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
     } else {
       throw 'Could not launch $phoneNumber';
+    }
+  }
+
+  String getLogoPath() {
+    switch (widget.method.toLowerCase()) {
+      case 'nagad':
+        return 'images/nagad_logo.png';
+      case 'rocket':
+        return 'images/rocket_logo.png';
+      case 'upay':
+        return 'images/upay_logo.png';
+      default:
+        return 'images/bkash_logo.png';
+    }
+  }
+
+  String getReceiverNumber() {
+    switch (widget.method.toLowerCase()) {
+      case 'nagad':
+        return '01888888888';
+      case 'rocket':
+        return '01777777777';
+      case 'upay':
+        return '01666666666';
+      default:
+        return '01887225454';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
-      body: Padding(
-        padding:
-            const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                /// bkash logo and back button part
-                Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: Container(
-                    height: 90,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30)),
+      backgroundColor: Colors.blue.shade700,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              /// Header with back and logo
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          size: 30, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const Spacer(),
+                  ],
+                ),
+              ),
+
+              /// Info card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.black,
-                            size: 30,
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
+                        const CircleAvatar(
+                          backgroundImage: AssetImage('images/logo.jpg'),
+                          radius: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          "${widget.method} Pay",
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const Spacer(),
-                        Image.asset(
-                          "images/bkash_logo.png",
-                          height: 60,
+                        Text(
+                          "৳${widget.amount}",
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        "Make sure the transaction is successful.\nIncorrect or empty information will fail the request.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const Divider(
-                  color: Colors.pink,
-                  thickness: 3,
+              ),
+
+              const SizedBox(height: 20),
+
+              /// Form
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    buildInputField(_trxIdController, "Enter Transaction ID"),
+                    const SizedBox(height: 10),
+                    buildInputField(
+                        _senderNumberController, "Enter Sender Number"),
+                    if (_showError)
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          'Please fill all fields correctly!',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
 
-                /// pink container part
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 229, 33, 131),
-                  ),
-                  child: Column(
-                    children: [
-                      /// User and amount part
-                      Container(
-                        height: 150,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                        ),
-                        child: Column(
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundImage:
-                                        AssetImage('images/logo.jpg'),
-                                    radius: 20,
-                                  ),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    "Ramim Pay",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  Spacer(),
-                                  Text(
-                                    "৳500",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              height: 50,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.2),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  "Payment failed: Incorrect Transaction Id or empty user\nTry again from back",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+              const SizedBox(height: 20),
+
+              /// Instructions
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Go to ${widget.method} App and send money.'),
+                    Text(
+                      'Receiver Number: ${getReceiverNumber()}',
+                      style: const TextStyle(
+                        color: Colors.yellow,
+                        fontWeight: FontWeight.bold,
                       ),
-
-                      const SizedBox(height: 20),
-
-                      /// Form Part
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 40),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 70, vertical: 0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: TextFormField(
-                                controller: _trxIdController,
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'Enter Transaction Id',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                            ),
-                            if (_showError) ...[
-                              const SizedBox(height: 6),
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Container(
-                                    height: 30,
-                                    width: 200,
-                                    decoration: const BoxDecoration(
-                                        color: Colors.white),
-                                    child: Row(
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 10),
-                                          child: Container(
-                                            height: 20,
-                                            width: 20,
-                                            padding: const EdgeInsets.all(2),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.yellow,
-                                            ),
-                                            child: Image.asset(
-                                              "images/error.png",
-                                              fit: BoxFit.contain,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        const Center(
-                                          child: Text(
-                                            'Please fill out this field.',
-                                            style: TextStyle(
-                                                color: Colors.red,
-                                                fontSize: 13),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      /// Instruction Texts
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('*247# ডায়াল করে bKash App এ যান।',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14)),
-                            const Text('যেখানে আপনার bKash অ্যাকাউন্ট আছে।',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14)),
-                            const Text('"Send Money" এ ক্লিক করুন।',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14)),
-                            const Text(
-                                'প্রাপক নম্বর হিসাবে এই নম্বরটি লিখুন\n01887225454',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14)),
-                            const SizedBox(height: 10),
-                            const Text('টাকা পরিমাণ: 500',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14)),
-                            const Text(
-                                'এখন প্রেরিত করার পর আপনার bKash পিন লিখুন।',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14)),
-                            const Text(
-                                'সবকিছু ঠিক থাকলে, আপনি bKash থেকে একটি\nকনফার্মেশন মেসেজ পাবেন।',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14)),
-                            const Text(
-                                'মেসেজের উপরে প্রদত্ত আপনার Transaction ID দিন\nএবং নিচের "VERIFY" বাটনে ক্লিক করুন।',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14)),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'For any query, call us at ',
-                                  style: TextStyle(
-                                    color: Colors.yellow,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
-                                InkWell(
-                                  onTap: () {
-                                    _launchPhoneDialer("01795248887");
-                                  },
-                                  child: const Text(
-                                    "01795248887",
-                                    style: TextStyle(
-                                        color: Colors.yellow,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: Colors.yellow),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_trxIdController.text.trim().isEmpty) {
-                            setState(() {
-                              _showError = true;
-                            });
-                          } else {
-                            setState(() {
-                              _showError = false;
-                            });
-                            print("Transaction ID: ${_trxIdController.text}");
-                            // Verification logic here
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: const RoundedRectangleBorder(),
-                        ),
-                        child: const Text(
-                          'VERIFY',
+                    ),
+                    Text('Amount: ৳${widget.amount}'),
+                    const Text('Enter the Transaction ID & your number.'),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'For any query, call us at ',
                           style: TextStyle(
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                            fontSize: 14,
                           ),
                         ),
-                      ),
-                    ],
+                        InkWell(
+                          onTap: () => _launchPhoneDialer("01795248887"),
+                          child: const Text(
+                            "01795248887",
+                            style: TextStyle(
+                              color: Colors.yellow,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              /// Verify Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_trxIdController.text.trim().isEmpty ||
+                        _senderNumberController.text.trim().isEmpty) {
+                      setState(() => _showError = true);
+                    } else {
+                      setState(() => _showError = false);
+
+                      /// ✅ Handle verification logic
+                      print("Method: ${widget.method}");
+                      print("Amount: ${widget.amount}");
+                      print("Transaction ID: ${_trxIdController.text}");
+                      print("Sender Number: ${_senderNumberController.text}");
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Submitted for verification")),
+                      );
+
+                      // TODO: Save to database or call API
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'VERIFY',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 30),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildInputField(TextEditingController controller, String hint) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: TextInputType.text,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: hint,
         ),
       ),
     );

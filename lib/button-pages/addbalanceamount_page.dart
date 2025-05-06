@@ -48,9 +48,14 @@ class _AddBalanceAmountPageState extends State<AddBalanceAmountPage> {
                     backgroundImage: AssetImage(widget.imagePath),
                   ),
                 ),
-                Text(widget.paymentMethod,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  widget.paymentMethod,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),
@@ -85,8 +90,9 @@ class _AddBalanceAmountPageState extends State<AddBalanceAmountPage> {
                                   child: Text(
                                     "Enter Amount",
                                     style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 10),
@@ -98,9 +104,11 @@ class _AddBalanceAmountPageState extends State<AddBalanceAmountPage> {
                                     filled: true,
                                     fillColor: Colors.grey[200],
                                     border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: const BorderSide(
-                                            color: Colors.grey)),
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: const BorderSide(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -111,8 +119,9 @@ class _AddBalanceAmountPageState extends State<AddBalanceAmountPage> {
                             decoration: const BoxDecoration(
                               color: Colors.blue,
                               borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(20),
-                                  bottomRight: Radius.circular(20)),
+                                bottomLeft: Radius.circular(20),
+                                bottomRight: Radius.circular(20),
+                              ),
                             ),
                             width: double.infinity,
                             height: 60,
@@ -121,16 +130,31 @@ class _AddBalanceAmountPageState extends State<AddBalanceAmountPage> {
                                 backgroundColor: Colors.blue,
                               ),
                               onPressed: () {
+                                String amount = _amountController.text.trim();
+                                if (amount.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Please enter amount"),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) =>
-                                          const AddBalanceVerifyPage()),
+                                    builder: (context) => AddBalanceVerifyPage(
+                                      method: widget.paymentMethod,
+                                      amount: amount,
+                                    ),
+                                  ),
                                 );
                               },
                               icon: const Icon(Icons.ads_click),
-                              label: const Text("Next",
-                                  style: TextStyle(fontSize: 16)),
+                              label: const Text(
+                                "Next",
+                                style: TextStyle(fontSize: 16),
+                              ),
                             ),
                           ),
                         ],
