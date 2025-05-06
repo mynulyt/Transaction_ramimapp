@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class RegularofferPageDelete extends StatefulWidget {
-  const RegularofferPageDelete({
+class RegularofferPage extends StatefulWidget {
+  const RegularofferPage({
     super.key,
     required this.operatorName,
     required this.operatorImagePath,
@@ -11,10 +11,10 @@ class RegularofferPageDelete extends StatefulWidget {
   final String operatorImagePath;
 
   @override
-  State<RegularofferPageDelete> createState() => _RegularofferPageDeleteState();
+  State<RegularofferPage> createState() => _RegularofferPageState();
 }
 
-class _RegularofferPageDeleteState extends State<RegularofferPageDelete> {
+class _RegularofferPageState extends State<RegularofferPage> {
   String selectedCategory = 'All';
   String searchQuery = '';
 
@@ -225,7 +225,7 @@ class _RegularofferPageDeleteState extends State<RegularofferPageDelete> {
                 onPressed: () {
                   showBuyConfirmationDialog(title, price);
                 },
-                child: const Text('Buy',
+                child: const Text('Delete',
                     style: TextStyle(fontSize: 20, color: Colors.white)),
               ),
             ),
@@ -256,11 +256,11 @@ class _RegularofferPageDeleteState extends State<RegularofferPageDelete> {
               onPressed: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Successfully purchased "$title"!')),
+                  SnackBar(content: Text('Successfully Deleted "$title"!')),
                 );
               },
               child: const Text(
-                'Buy',
+                'Delete',
                 style: TextStyle(color: Colors.white, fontSize: 20),
               ),
             ),

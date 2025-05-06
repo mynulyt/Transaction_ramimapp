@@ -67,8 +67,10 @@ class AdminPanelPage extends StatelessWidget {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const RegularofferPage(
-                                    operatorName: '', operatorImagePath: '')));
+                                builder: (context) =>
+                                    const RegularofferPageDelete(
+                                        operatorName: '',
+                                        operatorImagePath: '')));
                         // Navigate to Delete Offer Page
                       },
                       style: ElevatedButton.styleFrom(
