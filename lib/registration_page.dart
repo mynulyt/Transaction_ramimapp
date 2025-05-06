@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ramimapp/textFieldWidget.dart'; // Ensure updated buildTextField is used
+import 'package:flutter/material.dart';
+import 'package:ramimapp/Database/Auth_services/auth_services.dart';
+import 'package:ramimapp/textFieldWidget.dart'; // Make sure this is correctly imported.
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -12,7 +13,7 @@ class RegistrationPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegistrationPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService(); // <-- ADD THIS LINE
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -22,57 +23,43 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
 
+  // ... rest of your code
+
   String _gender = "Male";
   String _address = "Dhaka";
+  String? _verificationId;
+  bool _isCodeSent = false;
 
+  final _formKey = GlobalKey<FormState>();
+
+  // Replace this method to use AuthService's phone verification
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       try {
-        UserCredential userCredential =
-            await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
+        // Send the phone number for verification
+        await _authService.verifyPhone(
+          phoneNumber: "+880${_phoneController.text}",
+          codeSent: (String verificationId) {
+            setState(() {
+              _verificationId = verificationId;
+              _isCodeSent = true;
+            });
+          },
+          verificationCompleted: (String userId, int? resendToken) {
+            // If verification completed successfully, navigate to the next screen
+            Navigator.pushReplacementNamed(context, '/home');
+          },
+          onError: (FirebaseAuthException error) {
+            // Handle errors
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("Error: ${error.message}"),
+            ));
+          },
         );
-
-        final user = userCredential.user;
-        if (user != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({
-            'name': _nameController.text.trim(),
-            'phone': _phoneController.text.trim(),
-            'email': _emailController.text.trim(),
-            'national_id': _idController.text.trim(),
-            'dob': _dobController.text.trim(),
-            'gender': _gender,
-            'address': _address,
-            'pin': _pinController.text.trim(),
-            'uid': user.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Registration successful!')),
-          );
-
-          Navigator.pushReplacementNamed(context, '/login');
-        }
-      } on FirebaseAuthException catch (e) {
-        String message = "An error occurred";
-        if (e.code == 'email-already-in-use') {
-          message = 'This email is already registered';
-        } else if (e.code == 'weak-password') {
-          message = 'Password should be at least 6 characters';
-        } else if (e.code == 'invalid-email') {
-          message = 'Invalid email format';
-        }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unexpected error: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: $e'),
+        ));
       }
     }
   }
@@ -83,6 +70,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       appBar: AppBar(
         title: const Text("Register a New Account"),
         backgroundColor: Colors.green,
+        toolbarHeight: 70,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -91,62 +79,25 @@ class _RegistrationPageState extends State<RegistrationPage> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white)),
             child: Column(
               children: [
                 buildTextField(Icons.person, "Name",
-                    controller: _nameController, validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Name is required';
-                  }
-                  return null;
-                }),
+                    controller: _nameController),
                 buildTextField(Icons.phone, "Mobile number",
-                    controller: _phoneController, validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Mobile number is required';
-                  }
-                  return null;
-                }),
+                    controller: _phoneController),
                 buildTextField(Icons.email, "Email",
-                    controller: _emailController, validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Email is required';
-                  }
-                  return null;
-                }),
-                buildTextField(Icons.credit_card, "National ID",
-                    controller: _idController, validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'ID is required';
-                  }
-                  return null;
-                }),
+                    controller: _emailController),
+                buildTextField(Icons.credit_card, "National ID Card Number",
+                    controller: _idController),
                 buildTextField(Icons.calendar_today, "Date of Birth",
-                    controller: _dobController, validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'DOB is required';
-                  }
-                  return null;
-                }),
+                    controller: _dobController),
                 buildTextField(Icons.lock, "Password",
-                    controller: _passwordController,
-                    obscureText: true, validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Password is required';
-                  }
-                  return null;
-                }),
+                    obscureText: true, controller: _passwordController),
                 buildTextField(Icons.vpn_key, "Pin",
-                    controller: _pinController,
-                    obscureText: true, validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Pin is required';
-                  }
-                  return null;
-                }),
+                    obscureText: true, controller: _pinController),
                 buildGenderDropdown(Icons.person, "Select Gender"),
                 buildAutoCompleteField(
                   icon: Icons.map,
@@ -168,19 +119,48 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _register,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _register,
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: const BorderSide(color: Colors.indigo),
+                        ),
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          "Register a New Account",
+                          style: TextStyle(color: Colors.indigo),
+                        ),
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 12),
-                  ),
-                  child: const Text("Register",
-                      style: TextStyle(color: Colors.white)),
+                  ],
                 ),
+                if (_isCodeSent) ...[
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Enter OTP',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (otp) {
+                      // handle OTP input
+                    },
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      // Handle OTP submission
+                      if (_verificationId != null) {
+                        await _authService.signInWithOtp(
+                            _verificationId!, 'otp_value');
+                      }
+                    },
+                    child: Text('Verify OTP'),
+                  ),
+                ]
               ],
             ),
           ),
@@ -189,11 +169,33 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
-  buildGenderDropdown(IconData person, String s) {}
-
-  buildAutoCompleteField(
-      {required IconData icon,
-      required String labelText,
-      required List<String> options,
-      required Null Function(dynamic value) onChanged}) {}
+  Widget buildGenderDropdown(IconData icon, String labelText) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey.withOpacity(0.2),
+          prefixIcon: Icon(icon, color: Colors.green),
+          labelText: labelText,
+          labelStyle: const TextStyle(color: Colors.black),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        items: const [
+          DropdownMenuItem(value: "Male", child: Text("Male")),
+          DropdownMenuItem(value: "Female", child: Text("Female")),
+        ],
+        onChanged: (value) {
+          setState(() {
+            _gender = value!;
+          });
+        },
+      ),
+    );
+  }
 }
