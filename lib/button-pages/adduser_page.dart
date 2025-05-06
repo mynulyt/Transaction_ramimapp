@@ -86,4 +86,12 @@ class AddUserPage extends StatelessWidget {
       ),
     );
   }
+
+  buildGenderDropdown(IconData person, String s) {}
+
+  buildAutoCompleteField(
+      {required IconData icon,
+      required String labelText,
+      required List<String> options,
+      required Null Function(dynamic value) onChanged}) {}
 }

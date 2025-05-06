@@ -3,15 +3,20 @@ import 'package:flutter/material.dart';
 Widget buildTextField(IconData? icon, String labelText,
     {bool obscureText = false,
     bool enabled = true,
-    required TextEditingController controller}) {
+    required TextEditingController controller,
+    String? Function(String?)? validator}) {
+  // Added validator parameter
   return Container(
     height: 65,
     margin: const EdgeInsets.symmetric(vertical: 6),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: TextField(
+      child: TextFormField(
+        // Changed to TextFormField
         obscureText: obscureText,
         enabled: enabled,
+        controller: controller,
+        validator: validator, // Validation callback
         decoration: InputDecoration(
           filled: true,
           fillColor: Colors.grey.withOpacity(0.3),
@@ -26,80 +31,6 @@ Widget buildTextField(IconData? icon, String labelText,
           ),
         ),
       ),
-    ),
-  );
-}
-
-Widget buildGenderDropdown(IconData icon, String labelText) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey.withOpacity(0.2),
-        prefixIcon: Icon(icon, color: Colors.green),
-        labelText: labelText,
-        labelStyle: const TextStyle(color: Colors.black),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      items: const [
-        DropdownMenuItem(value: "Male", child: Text("Male")),
-        DropdownMenuItem(value: "Female", child: Text("Female")),
-      ],
-      onChanged: (value) {},
-    ),
-  );
-}
-
-Widget buildAutoCompleteField({
-  required IconData icon,
-  required String labelText,
-  required List<String> options,
-  required Null Function(dynamic value) onChanged,
-}) {
-  return Container(
-    margin: const EdgeInsets.symmetric(vertical: 8),
-    child: Autocomplete<String>(
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return const Iterable<String>.empty();
-        }
-        return options.where((String option) {
-          return option
-              .toLowerCase()
-              .contains(textEditingValue.text.toLowerCase());
-        });
-      },
-      fieldViewBuilder: (BuildContext context,
-          TextEditingController textEditingController,
-          FocusNode focusNode,
-          VoidCallback onFieldSubmitted) {
-        return TextField(
-          controller: textEditingController,
-          focusNode: focusNode,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey.withOpacity(0.2),
-            prefixIcon: Icon(icon, color: Colors.green),
-            labelText: labelText,
-            labelStyle: const TextStyle(color: Colors.black),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        );
-      },
-      onSelected: (String selection) {
-        debugPrint('Selected: $selection');
-      },
     ),
   );
 }
