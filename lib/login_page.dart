@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
+import 'package:ramimapp/button-pages/adduser_page.dart';
+import 'package:ramimapp/registration_page.dart';
 import 'package:ramimapp/widgets/otp_verify.dart';
 
 class LoginPage extends StatefulWidget {
@@ -12,6 +14,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +45,11 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     _buildTextField(Icons.phone, "Mobile number",
                         controller: phoneController),
+                    _buildTextField(Icons.password, "Enter password",
+                        controller: passwordController),
                     const SizedBox(height: 20),
                     SizedBox(
-                      width: 200,
+                      width: 390,
                       child: OutlinedButton(
                         onPressed: () {
                           String phone = phoneController.text.trim();
@@ -94,6 +99,33 @@ class _LoginPageState extends State<LoginPage> {
                         child: const Text(
                           "Login",
                           style: TextStyle(color: Colors.indigo, fontSize: 16),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    SizedBox(
+                      width: 390,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RegistrationPage()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 14),
+                        ),
+                        child: const Text(
+                          "Registration Now",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                       ),
                     ),

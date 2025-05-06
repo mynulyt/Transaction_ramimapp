@@ -11,10 +11,11 @@ import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transfermethod_page.dart';
+import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/widgets/drawer.dart';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'registration_page.dart'; // Assuming this is your registration page
+// Assuming this is your registration page
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const RegistrationPage(),
+      home: LoginPage(),
       debugShowCheckedModeBanner: false,
     );
   }
