@@ -13,6 +13,27 @@ import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transfermethod_page.dart';
 import 'package:ramimapp/widgets/drawer.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'registration_page.dart'; // Assuming this is your registration page
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: const RegistrationPage(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 

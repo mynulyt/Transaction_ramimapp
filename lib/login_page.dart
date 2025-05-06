@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
-import 'package:ramimapp/main.dart';
-import 'package:ramimapp/registration_page.dart';
+import 'package:ramimapp/Database/Auth_services/auth_services.dart';
+import 'package:ramimapp/widgets/otp_verify.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController phoneController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -33,18 +40,47 @@ class LoginPage extends StatelessWidget {
                     border: Border.all(color: Colors.grey.withOpacity(0.5))),
                 child: Column(
                   children: [
-                    _buildTextField(Icons.phone, "Mobile number"),
-                    const SizedBox(height: 12),
-                    _buildTextField(Icons.lock, "Password", obscure: true),
+                    _buildTextField(Icons.phone, "Mobile number",
+                        controller: phoneController),
                     const SizedBox(height: 20),
                     SizedBox(
                       width: 200,
                       child: OutlinedButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const MainScreen()),
+                          String phone = phoneController.text.trim();
+                          if (phone.isEmpty || phone.length != 11) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text("Enter a valid 11-digit number")),
+                            );
+                            return;
+                          }
+                          String fullPhone = '+88$phone'; // Bangladesh code
+                          AuthService().verifyPhone(
+                            phoneNumber: fullPhone,
+                            codeSent: (verificationId) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => OtpVerifyPage(
+                                      verificationId: verificationId),
+                                ),
+                              );
+                            },
+                            verificationCompleted: (uid, _) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Logged in successfully!")),
+                              );
+                            },
+                            onError: (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        e.message ?? "Verification failed")),
+                              );
+                            },
                           );
                         },
                         style: OutlinedButton.styleFrom(
@@ -62,35 +98,11 @@ class LoginPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: 280,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const RegistrationPage()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 14),
-                        ),
-                        child: const Text(
-                          "Register a New Account",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 3),
                     TextButton(
                       onPressed: () {},
                       child: const Text(
-                        "Forgot password ?",
+                        "Forgot password?",
                         style: TextStyle(color: Colors.indigo, fontSize: 16),
                       ),
                     ),
@@ -99,15 +111,16 @@ class LoginPage extends StatelessWidget {
                       TextSpan(
                         children: [
                           TextSpan(
-                              text: "By logging or Reg, you agree to our ",
-                              style:
-                                  TextStyle(fontSize: 13, color: Colors.red)),
+                            text: "By logging in, you agree to our ",
+                            style: TextStyle(fontSize: 13, color: Colors.red),
+                          ),
                           TextSpan(
-                              text: "Privacy Policy",
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.indigo,
-                                  fontWeight: FontWeight.w500)),
+                            text: "Privacy Policy",
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.indigo,
+                                fontWeight: FontWeight.w500),
+                          ),
                         ],
                       ),
                       textAlign: TextAlign.center,
@@ -120,22 +133,21 @@ class LoginPage extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withOpacity(0.5))),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _SocialIcon(
-                      icon: Icons.call_end,
-                      label: "Whatsapp",
-                    ),
+                    _SocialIcon(icon: Icons.call_end, label: "Whatsapp"),
                     _SocialIcon(icon: Icons.send, label: "Telegram"),
                     _SocialIcon(icon: Icons.facebook, label: "Facebook"),
                     _SocialIcon(icon: Icons.call, label: "Helpline"),
                   ],
                 ),
               ),
+              const SizedBox(height: 20),
               SizedBox(
                 width: 180,
                 child: ElevatedButton(
@@ -167,8 +179,11 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(IconData icon, String label, {bool obscure = false}) {
+  Widget _buildTextField(IconData icon, String label,
+      {bool obscure = false, required TextEditingController controller}) {
     return TextField(
+      controller: controller,
+      keyboardType: TextInputType.phone,
       obscureText: obscure,
       decoration: InputDecoration(
         filled: true,
