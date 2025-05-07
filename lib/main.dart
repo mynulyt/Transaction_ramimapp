@@ -12,6 +12,7 @@ import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transfermethod_page.dart';
 import 'package:ramimapp/login_page.dart';
+
 import 'package:ramimapp/widgets/drawer.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoginScreen(),
+      home: LoginPage(),
       debugShowCheckedModeBanner: false,
     );
   }
