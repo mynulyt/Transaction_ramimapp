@@ -53,7 +53,7 @@ class _ForggetPasswordState extends State<ForggetPassword> {
                 const Text(
                   'Enter your email to receive a password reset link',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16, color: Colors.red),
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
