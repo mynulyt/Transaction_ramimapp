@@ -3,43 +3,32 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> verifyPhone({
-    required String phoneNumber,
-    required Function(String) codeSent,
-    required Function(String, int?) verificationCompleted,
-    required Function(FirebaseAuthException) onError,
-  }) async {
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      timeout: const Duration(seconds: 60),
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        final user = await _auth.signInWithCredential(credential);
-        if (user.user != null) {
-          verificationCompleted(user.user!.uid, null);
-        }
-      },
-      verificationFailed: onError,
-      codeSent: (String verificationId, int? resendToken) {
-        codeSent(verificationId);
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {},
-    );
+  // Sign in with email and password
+  Future<User?> signIn(String email, String password) async {
+    try {
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
+      return result.user;
+    } catch (e) {
+      print('Login error: $e');
+      return null;
+    }
   }
 
-  Future<UserCredential> signInWithOtp(
-      String verificationId, String otp) async {
-    final credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: otp,
-    );
-    return await _auth.signInWithCredential(credential);
+  // Register with email and password
+  Future<User?> register(String email, String password) async {
+    try {
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+      return result.user;
+    } catch (e) {
+      print('Registration error: $e');
+      return null;
+    }
   }
 
+  // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
-  }
-
-  bool isUserLoggedIn() {
-    return _auth.currentUser != null;
   }
 }
