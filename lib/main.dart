@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-// Other imports...
 import 'package:ramimapp/button-pages/addbalancemethod_page.dart';
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
@@ -12,11 +11,9 @@ import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transfermethod_page.dart';
 import 'package:ramimapp/login_page.dart';
-
 import 'package:ramimapp/widgets/drawer.dart';
 
 import 'package:firebase_core/firebase_core.dart';
-// Assuming this is your registration page
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,6 +107,8 @@ class _MainScreenState extends State<MainScreen> {
         final double balance = (data['balance'] ?? 0).toDouble();
         final double advance = (data['advance'] ?? 0).toDouble();
         final double due = (data['due'] ?? 0).toDouble();
+        final String name = data['name'] ?? 'User Name';
+        final String phone = data['phone'] ?? 'Unknown';
 
         return Column(
           children: [
@@ -120,9 +119,9 @@ class _MainScreenState extends State<MainScreen> {
                 border: Border.all(color: Colors.indigo),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.indigo,
                     child: Text(
@@ -133,15 +132,16 @@ class _MainScreenState extends State<MainScreen> {
                           color: Colors.white),
                     ),
                   ),
-                  SizedBox(width: 20),
+                  const SizedBox(width: 20),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Mynul Alam",
-                          style: TextStyle(
+                      Text(name,
+                          style: const TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
-                      Text("Account No: 123456789",
-                          style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      Text("Account No: $phone",
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.grey)),
                     ],
                   ),
                 ],
