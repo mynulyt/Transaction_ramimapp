@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
+import 'package:ramimapp/main.dart';
 import 'package:ramimapp/registration_page.dart';
+// Added import
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,7 +33,12 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login successful!")),
       );
-      // Navigate to home or main screen
+
+      // Navigate to MainPage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result)),
