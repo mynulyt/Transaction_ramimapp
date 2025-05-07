@@ -2,34 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/login_page.dart';
-
 import 'package:ramimapp/main.dart';
-
-void main() {
-  runApp(const MaterialApp(
-    home: HomePage(),
-  ));
-}
-
-class HomePage extends StatelessWidget {
-  final String firstName = "John";
-  final String lastName = "Doe";
-
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Drawer Example'),
-      ),
-      drawer: buildDrawer(firstName, lastName, context),
-      body: const Center(
-        child: Text('Home Page Content'),
-      ),
-    );
-  }
-}
 
 Widget buildDrawer(String firstName, String lastName, BuildContext context) {
   return Drawer(
