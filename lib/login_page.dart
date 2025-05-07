@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
+import 'package:ramimapp/button-pages/Forgget_pass.dart';
 import 'package:ramimapp/main.dart';
 import 'package:ramimapp/registration_page.dart';
 // Added import
@@ -124,7 +125,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 12),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ForggetPassword()));
+                      },
                       child: const Text(
                         "Forgot password?",
                         style: TextStyle(color: Colors.indigo, fontSize: 16),
