@@ -121,12 +121,12 @@ class _MainScreenState extends State<MainScreen> {
               ),
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.indigo,
                     child: Text(
-                      'MA',
-                      style: TextStyle(
+                      _getInitials(name),
+                      style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.white),
@@ -272,6 +272,17 @@ class _MainScreenState extends State<MainScreen> {
         );
       },
     );
+  }
+
+  String _getInitials(String name) {
+    List<String> parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    } else if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    } else {
+      return "U"; // Default fallback
+    }
   }
 }
 
