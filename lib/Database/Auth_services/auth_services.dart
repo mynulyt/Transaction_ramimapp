@@ -28,8 +28,13 @@ class AuthService {
     }
   }
 
-  // Sign Out (Optional)
+  // Sign Out
   Future<void> signOut() async {
     await _auth.signOut();
+  }
+
+  // Get Current User
+  User? getCurrentUser() {
+    return _auth.currentUser;
   }
 }
