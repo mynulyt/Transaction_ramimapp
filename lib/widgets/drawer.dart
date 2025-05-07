@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ramimapp/Database/Auth_services/auth_services.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
+import 'package:ramimapp/login_page.dart';
 
 import 'package:ramimapp/main.dart';
 
@@ -114,9 +116,12 @@ Widget buildDrawer(String firstName, String lastName, BuildContext context) {
         ListTile(
           leading: const Icon(Icons.logout),
           title: const Text('Log Out'),
-          onTap: () {
-            // Handle Log Out click
-            print("Log Out clicked");
+          onTap: () async {
+            await AuthService().signOut();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
           },
         ),
         const Divider(),
