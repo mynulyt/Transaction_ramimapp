@@ -65,7 +65,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      drawer: buildDrawer('Mynul', 'Alam', context),
+      drawer: buildDrawer(context),
       body: IndexedStack(
         index: _selectedIndex,
         children: [
