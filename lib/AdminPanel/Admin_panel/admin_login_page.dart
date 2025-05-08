@@ -1,15 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/adminpanel_page.dart';
-import 'package:ramimapp/AdminPanel/admin_auth.dart';
 
 class AdminLoginPage extends StatelessWidget {
   AdminLoginPage({super.key});
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
-  TextEditingController UseerNameController = TextEditingController();
-  TextEditingController PasswordController = TextEditingController();
-  TextEditingController PinController = TextEditingController();
-  TextEditingController PhoneController = TextEditingController();
+  final TextEditingController UseerNameController = TextEditingController();
+  final TextEditingController PasswordController = TextEditingController();
+  final TextEditingController PinController = TextEditingController();
+  final TextEditingController PhoneController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -37,145 +36,41 @@ class AdminLoginPage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    const SizedBox(
-                      height: 50.0,
+                    const SizedBox(height: 50.0),
+                    // Username
+                    buildInputField(
+                      controller: UseerNameController,
+                      hintText: "Username",
+                      errorText: "Please Enter User Name",
                     ),
-                    //Input user name
-                    Container(
-                      padding: const EdgeInsets.only(
-                          left: 20.0, top: 5.0, bottom: 5.0),
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 53, 51, 51),
-                        ),
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Center(
-                        child: TextFormField(
-                          controller: UseerNameController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Enter Useer Name';
-                            }
-                            return null;
-                          },
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "Username",
-                            hintStyle: TextStyle(
-                              color: Color.fromARGB(255, 160, 160, 147),
-                            ),
-                          ),
-                        ),
-                      ),
+                    const SizedBox(height: 40.0),
+                    // Password
+                    buildInputField(
+                      controller: PasswordController,
+                      hintText: "Password",
+                      errorText: "Please Enter Password",
                     ),
-                    //Input admin password
-                    const SizedBox(
-                      height: 40.0,
+                    const SizedBox(height: 40.0),
+                    // PIN
+                    buildInputField(
+                      controller: PinController,
+                      hintText: "PIN",
+                      errorText: "Please Enter Your Pin",
                     ),
-                    Container(
-                      padding: const EdgeInsets.only(
-                          left: 20.0, top: 5.0, bottom: 5.0),
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 53, 51, 51),
-                        ),
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Center(
-                        child: TextFormField(
-                          controller: PasswordController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Enter Password';
-                            }
-                            return null;
-                          },
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "Password",
-                            hintStyle: TextStyle(
-                              color: Color.fromARGB(255, 160, 160, 147),
-                            ),
-                          ),
-                        ),
-                      ),
+                    const SizedBox(height: 40.0),
+                    // Phone
+                    buildInputField(
+                      controller: PhoneController,
+                      hintText: "Phone",
+                      errorText: "Please Enter Phone Number",
                     ),
-                    const SizedBox(
-                      height: 40.0,
-                    ),
-                    //Input admin pin
-                    Container(
-                      padding: const EdgeInsets.only(
-                          left: 20.0, top: 5.0, bottom: 5.0),
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 53, 51, 51),
-                        ),
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Center(
-                        child: TextFormField(
-                          controller: PinController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Enter Your Pin';
-                            }
-                            return null;
-                          },
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "PIN",
-                            hintStyle: TextStyle(
-                              color: Color.fromARGB(255, 160, 160, 147),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 40.0,
-                    ),
-                    //Input phone number
-                    Container(
-                      padding: const EdgeInsets.only(
-                          left: 20.0, top: 5.0, bottom: 5.0),
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 53, 51, 51),
-                        ),
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Center(
-                        child: TextFormField(
-                          controller: PhoneController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Enter Phone Number';
-                            }
-                            return null;
-                          },
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "Phone",
-                            hintStyle: TextStyle(
-                              color: Color.fromARGB(255, 160, 160, 147),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 40.0,
-                    ),
+                    const SizedBox(height: 40.0),
 
                     GestureDetector(
                       onTap: () {
-                        LoginAdmin(context);
+                        if (_formkey.currentState?.validate() ?? true) {
+                          LoginAdmin(context);
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -207,49 +102,84 @@ class AdminLoginPage extends StatelessWidget {
     );
   }
 
-  // Widget _buildTextField(IconData icon, String label, {bool obscure = false}) {
-  //   return TextField(
-  //     obscureText: obscure,
-  //     decoration: InputDecoration(
-  //       filled: true,
-  //       fillColor: Colors.grey.shade200,
-  //       prefixIcon: Icon(icon, color: Colors.blue[700]),
-  //       labelText: label,
-  //       labelStyle: const TextStyle(color: Colors.grey),
-  //       border: OutlineInputBorder(
-  //         borderRadius: BorderRadius.circular(15),
-  //         borderSide: BorderSide.none,
-  //       ),
-  //       contentPadding:
-  //           const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-  //     ),
-  //   );
-  // }
+  Widget buildInputField({
+    required TextEditingController controller,
+    required String hintText,
+    required String errorText,
+  }) {
+    return Container(
+      padding: const EdgeInsets.only(left: 20.0, top: 5.0, bottom: 5.0),
+      margin: const EdgeInsets.symmetric(horizontal: 20.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color.fromARGB(255, 53, 51, 51)),
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Center(
+        child: TextFormField(
+          controller: controller,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return errorText;
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: hintText,
+            hintStyle: const TextStyle(
+              color: Color.fromARGB(255, 160, 160, 147),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-  LoginAdmin(context) {
-    FirebaseFirestore.instance.collection("AdminPanel").get().then((snapshot) {
-      for (var result in snapshot.docs) {
-        if (result.data()['id'] != UseerNameController.text.trim()) {
-          ScaffoldMessenger.of(context).showSnackBar((const SnackBar(
-              backgroundColor: Colors.orange,
-              content: Text(
-                "Your id is wrong!",
-                style: TextStyle(fontSize: 18.0),
-              ))));
-        } else if (result.data()['password'] !=
-            PasswordController.text.trim()) {
-          ScaffoldMessenger.of(context).showSnackBar((const SnackBar(
-              backgroundColor: Colors.orange,
-              content: Text(
-                "Your password is wrong!",
-                style: TextStyle(fontSize: 18.0),
-              ))));
-        } else {
-          Route route =
-              MaterialPageRoute(builder: (context) => const AdminPanelPage());
-          Navigator.pushReplacement(context, route);
-        }
+  void LoginAdmin(BuildContext context) async {
+    final String inputId = UseerNameController.text.trim();
+    final String inputPassword = PasswordController.text.trim();
+    final String inputPin = PinController.text.trim();
+    final String inputPhone = PhoneController.text.trim();
+
+    try {
+      final DocumentSnapshot adminDoc = await FirebaseFirestore.instance
+          .collection("AdminPanel")
+          .doc(inputId)
+          .get();
+
+      if (!adminDoc.exists) {
+        showSnack(context, "Your ID is wrong!");
+        return;
       }
-    });
+
+      final data = adminDoc.data() as Map<String, dynamic>;
+
+      if (data['password'] != inputPassword) {
+        showSnack(context, "Your password is wrong!");
+      } else if (data['pin'] != inputPin) {
+        showSnack(context, "Your PIN is wrong!");
+      } else if (data['phone'] != inputPhone) {
+        showSnack(context, "Your phone number is wrong!");
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminPanelPage()),
+        );
+      }
+    } catch (e) {
+      showSnack(context, "Login failed: ${e.toString()}");
+    }
+  }
+
+  void showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.orange,
+        content: Text(
+          message,
+          style: const TextStyle(fontSize: 18.0),
+        ),
+      ),
+    );
   }
 }
