@@ -38,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
       // Navigate to MainPage
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MainScreen()),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => RegistrationPage()),
+                                builder: (context) => const RegistrationPage()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -129,7 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => ForggetPassword()));
+                                builder: (context) => const ForggetPassword()));
                       },
                       child: const Text(
                         "Forgot password?",
