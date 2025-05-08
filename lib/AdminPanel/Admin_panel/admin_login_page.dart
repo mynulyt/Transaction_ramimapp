@@ -40,6 +40,7 @@ class AdminLoginPage extends StatelessWidget {
                     const SizedBox(
                       height: 50.0,
                     ),
+                    //Input user name
                     Container(
                       padding: const EdgeInsets.only(
                           left: 20.0, top: 5.0, bottom: 5.0),
@@ -69,6 +70,7 @@ class AdminLoginPage extends StatelessWidget {
                         ),
                       ),
                     ),
+                    //Input admin password
                     const SizedBox(
                       height: 40.0,
                     ),
@@ -104,6 +106,73 @@ class AdminLoginPage extends StatelessWidget {
                     const SizedBox(
                       height: 40.0,
                     ),
+                    //Input admin pin
+                    Container(
+                      padding: const EdgeInsets.only(
+                          left: 20.0, top: 5.0, bottom: 5.0),
+                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color.fromARGB(255, 53, 51, 51),
+                        ),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: Center(
+                        child: TextFormField(
+                          controller: PinController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please Enter Your Pin';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: "PIN",
+                            hintStyle: TextStyle(
+                              color: Color.fromARGB(255, 160, 160, 147),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40.0,
+                    ),
+                    //Input phone number
+                    Container(
+                      padding: const EdgeInsets.only(
+                          left: 20.0, top: 5.0, bottom: 5.0),
+                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color.fromARGB(255, 53, 51, 51),
+                        ),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: Center(
+                        child: TextFormField(
+                          controller: PhoneController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please Enter Phone Number';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: "Phone",
+                            hintStyle: TextStyle(
+                              color: Color.fromARGB(255, 160, 160, 147),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40.0,
+                    ),
+
                     GestureDetector(
                       onTap: () {
                         LoginAdmin(context);
