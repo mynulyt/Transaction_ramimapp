@@ -227,7 +227,7 @@ class AdminLoginPage extends StatelessWidget {
   // }
 
   LoginAdmin(context) {
-    FirebaseFirestore.instance.collection("Admin").get().then((snapshot) {
+    FirebaseFirestore.instance.collection("AdminPanel").get().then((snapshot) {
       for (var result in snapshot.docs) {
         if (result.data()['id'] != UseerNameController.text.trim()) {
           ScaffoldMessenger.of(context).showSnackBar((const SnackBar(
