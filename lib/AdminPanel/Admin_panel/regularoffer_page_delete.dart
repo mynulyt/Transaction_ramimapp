@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class RegularofferPage extends StatefulWidget {
-  const RegularofferPage({
+class RegularofferDeletePage extends StatefulWidget {
+  const RegularofferDeletePage({
     super.key,
     required this.operatorName,
     required this.operatorImagePath,
@@ -11,10 +11,10 @@ class RegularofferPage extends StatefulWidget {
   final String operatorImagePath;
 
   @override
-  State<RegularofferPage> createState() => _RegularofferPageState();
+  State<RegularofferDeletePage> createState() => _RegularofferDeletePageState();
 }
 
-class _RegularofferPageState extends State<RegularofferPage> {
+class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
   String selectedCategory = 'All';
   String searchQuery = '';
 
