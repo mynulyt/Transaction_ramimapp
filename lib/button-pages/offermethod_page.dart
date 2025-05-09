@@ -82,7 +82,7 @@ class OperatorBox extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RegularofferPageDelete(
+            builder: (context) => RegularofferPage(
               operatorName: name,
               operatorImagePath: imagePath,
             ),

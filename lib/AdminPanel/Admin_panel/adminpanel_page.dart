@@ -1,9 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ramimapp/AdminPanel/Admin_panel/delete_offer_method.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/mailbox_page.dart';
-import 'package:ramimapp/AdminPanel/Admin_panel/regularoffer_page_delete.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/submitoffer_page.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/transactionhistory_page.dart';
-
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
@@ -11,6 +11,53 @@ import 'package:ramimapp/button-pages/tallykhata_page.dart';
 
 class AdminPanelPage extends StatelessWidget {
   const AdminPanelPage({super.key});
+
+  Future<void> _showOperatorSelectionDialog(BuildContext context) async {
+    final operatorsSnapshot =
+        await FirebaseFirestore.instance.collection('operators').get();
+
+    final operators = operatorsSnapshot.docs;
+
+    if (operators.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No operators found.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Select Operator'),
+        children: operators.map((doc) {
+          final name = doc['name'] ?? '';
+          final image = doc['image'] ?? '';
+          return SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DeleteOfferMethod(
+                    operatorName: name,
+                    operatorImagePath: image,
+                  ),
+                ),
+              );
+            },
+            child: Row(
+              children: [
+                if (image != '')
+                  CircleAvatar(backgroundImage: NetworkImage(image)),
+                const SizedBox(width: 10),
+                Text(name),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +111,7 @@ class AdminPanelPage extends StatelessWidget {
                         horizontal: 8.0, vertical: 4.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const RegularofferDeletePage(
-                                        operatorName: '',
-                                        operatorImagePath: '')));
-                        // Navigate to Delete Offer Page
+                        _showOperatorSelectionDialog(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:

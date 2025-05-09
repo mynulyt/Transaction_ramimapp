@@ -2,17 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class RegularofferDeletePage extends StatefulWidget {
-  const RegularofferDeletePage({
-    super.key,
-    required this.operatorName,
-    required this.operatorImagePath,
-  });
-
   final String operatorName;
   final String operatorImagePath;
 
+  const RegularofferDeletePage({
+    Key? key,
+    required this.operatorName,
+    required this.operatorImagePath,
+  }) : super(key: key);
+
   @override
-  State<RegularofferDeletePage> createState() => _RegularofferDeletePageState();
+  _RegularofferDeletePageState createState() => _RegularofferDeletePageState();
 }
 
 class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
@@ -23,13 +23,11 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text(widget.operatorName),
         backgroundColor: Colors.green.shade700,
-        title: Text(widget.operatorName,
-            style: const TextStyle(color: Colors.white)),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(110),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -58,7 +56,6 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
                           },
                           decoration: const InputDecoration(
                             hintText: 'Search',
-                            hintStyle: TextStyle(fontSize: 16),
                             suffixIcon: Icon(Icons.search, color: Colors.green),
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.symmetric(
