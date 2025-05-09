@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/mailbox_page.dart';
+import 'package:ramimapp/AdminPanel/Admin_panel/regularoffer_page_delete.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/submitoffer_page.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/transactionhistory_page.dart';
 
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
-import 'package:ramimapp/button-pages/regularoffer_page.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 
@@ -68,7 +68,7 @@ class AdminPanelPage extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    const RegularofferPageDelete(
+                                    const RegularofferDeletePage(
                                         operatorName: '',
                                         operatorImagePath: '')));
                         // Navigate to Delete Offer Page
