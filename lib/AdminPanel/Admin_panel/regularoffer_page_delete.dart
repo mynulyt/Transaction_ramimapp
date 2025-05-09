@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class RegularofferDeletePage extends StatefulWidget {
@@ -18,59 +19,8 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
   String selectedCategory = 'All';
   String searchQuery = '';
 
-  List<Map<String, dynamic>> packages = [
-    {
-      'title': '60GB + 1500MIN (30 Days)',
-      'price': 999,
-      'type': 'Bundles',
-    },
-    {
-      'title': '120GB Internet (30 Days)',
-      'price': 798,
-      'type': 'Internet',
-    },
-    {
-      'title': '5GB Internet (30 Days)',
-      'price': 298,
-      'type': 'Internet',
-    },
-    {
-      'title': '10GB Internet (30 Days)',
-      'price': 397,
-      'type': 'Internet',
-    },
-    {
-      'title': '20GB Internet (30 Days)',
-      'price': 497,
-      'type': 'Internet',
-    },
-    {
-      'title': '100 Minutes (7 Days)',
-      'price': 99,
-      'type': 'Minutes',
-    },
-    {
-      'title': 'Super Call Rate (30 Days)',
-      'price': 59,
-      'type': 'Call Rate',
-    },
-    {
-      'title': 'SMS Pack 500 (30 Days)',
-      'price': 49,
-      'type': 'SMS',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> filteredPackages = packages.where((pkg) {
-      bool matchCategory =
-          selectedCategory == 'All' || pkg['type'] == selectedCategory;
-      bool matchSearch =
-          pkg['title'].toLowerCase().contains(searchQuery.toLowerCase());
-      return matchCategory && matchSearch;
-    }).toList();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green.shade700,
@@ -122,16 +72,18 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    categoryButton('All'),
-                    categoryButton('Minutes'),
-                    categoryButton('Internet'),
-                    categoryButton('Bundles'),
-                    categoryButton('Call Rate'),
-                    categoryButton('SMS'),
-                  ],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      categoryButton('All'),
+                      categoryButton('Minutes'),
+                      categoryButton('Internet'),
+                      categoryButton('Bundles'),
+                      categoryButton('Call Rate'),
+                      categoryButton('SMS'),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -139,19 +91,42 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
           ),
         ),
       ),
-      body: filteredPackages.isEmpty
-          ? const Center(child: Text('No packages found'))
-          : SingleChildScrollView(
-              child: Column(
-                children: filteredPackages.map((pkg) {
-                  return buildPackageItem(
-                    title: pkg['title'],
-                    price: pkg['price'],
-                    type: pkg['type'],
-                  );
-                }).toList(),
-              ),
-            ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('regular_offers')
+            .where('operator', isEqualTo: widget.operatorName)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No packages found'));
+          }
+
+          final filteredPackages = snapshot.data!.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final matchCategory =
+                selectedCategory == 'All' || data['type'] == selectedCategory;
+            final matchSearch =
+                data['title'].toLowerCase().contains(searchQuery.toLowerCase());
+            return matchCategory && matchSearch;
+          }).toList();
+
+          return ListView(
+            children: filteredPackages.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              return buildPackageItem(
+                id: doc.id,
+                title: data['title'],
+                price: data['price'],
+                type: data['type'],
+              );
+            }).toList(),
+          );
+        },
+      ),
     );
   }
 
@@ -164,6 +139,7 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
         });
       },
       child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -182,6 +158,7 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
   }
 
   Widget buildPackageItem({
+    required String id,
     required String title,
     required int price,
     required String type,
@@ -219,11 +196,10 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade700,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
-                  showBuyConfirmationDialog(title, price);
+                  confirmDelete(id, title);
                 },
                 child: const Text('Delete',
                     style: TextStyle(fontSize: 20, color: Colors.white)),
@@ -235,34 +211,32 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
     );
   }
 
-  void showBuyConfirmationDialog(String title, int price) {
+  void confirmDelete(String id, String title) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Confirm Purchase'),
-          content: Text('Do you want to buy "$title" for $price BDT?'),
+          title: const Text('Confirm Deletion'),
+          content: Text('Do you want to delete "$title"?'),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade700,
-              ),
-              onPressed: () {
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () async {
                 Navigator.pop(context);
+                await FirebaseFirestore.instance
+                    .collection('regular_offers')
+                    .doc(id)
+                    .delete();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Successfully Deleted "$title"!')),
+                  SnackBar(content: Text('Deleted "$title" successfully')),
                 );
               },
-              child: const Text(
-                'Delete',
-                style: TextStyle(color: Colors.white, fontSize: 20),
-              ),
+              child:
+                  const Text('Delete', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
