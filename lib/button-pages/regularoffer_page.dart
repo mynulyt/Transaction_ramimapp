@@ -217,7 +217,10 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
               width: double.infinity,
               height: 40,
               child: ElevatedButton.icon(
-                onPressed: () => _buyOffer(data),
+                onPressed: () => showBuyConfirmationDialog(
+                  data['offerType'] ?? 'No Title',
+                  int.tryParse(data['price'].toString()) ?? 0,
+                ),
                 icon: const Icon(Icons.shopping_cart, color: Colors.white),
                 label: const Text(
                   'Buy',
@@ -254,11 +257,38 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
     );
   }
 
-  void _buyOffer(Map<String, dynamic> data) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Buying ${data['offerType'] ?? 'this offer'}...')),
+  void showBuyConfirmationDialog(String title, int price) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Purchase'),
+          content: Text('Do you want to buy "$title" for $price BDT?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade700,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Successfully purchased "$title"!')),
+                );
+              },
+              child: const Text(
+                'Buy',
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ),
+          ],
+        );
+      },
     );
-
-    // TODO: Implement your actual buy logic here
   }
 }

@@ -49,6 +49,7 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
       minutesController.clear();
       smsController.clear();
       termController.clear();
+      priceController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),
