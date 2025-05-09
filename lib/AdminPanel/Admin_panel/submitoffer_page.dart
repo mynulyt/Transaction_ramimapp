@@ -14,6 +14,7 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
   final TextEditingController minutesController = TextEditingController();
   final TextEditingController smsController = TextEditingController();
   final TextEditingController termController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
 
   String? selectedOperator;
   String? selectedOfferType;
@@ -35,6 +36,7 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
       'minutes': minutesController.text.trim(),
       'sms': smsController.text.trim(),
       'term': termController.text.trim(),
+      'price': priceController.text.trim(), // added line
       'submittedAt': Timestamp.now(),
     };
 
@@ -108,6 +110,13 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
             _buildTextField(
               hintText: 'Enter offer term (e.g. 7 days)',
               controller: termController,
+            ),
+            const SizedBox(height: 24),
+            _buildSectionHeader('Price'),
+            const SizedBox(height: 8),
+            _buildTextField(
+              hintText: 'Enter price (e.g. 49)',
+              controller: priceController,
             ),
             const SizedBox(height: 32),
             Padding(

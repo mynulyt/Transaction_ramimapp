@@ -263,7 +263,7 @@ class _MainScreenState extends State<MainScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const OfferMethodPage()));
+                            builder: (context) => OfferMethodPage()));
                   }),
                 ],
               ),

@@ -1,76 +1,27 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class RegularofferPage extends StatefulWidget {
-  const RegularofferPage({
+class RegularofferBuyPage extends StatefulWidget {
+  final String operatorName;
+  final String operatorImagePath;
+
+  const RegularofferBuyPage({
     super.key,
     required this.operatorName,
     required this.operatorImagePath,
   });
 
-  final String operatorName;
-  final String operatorImagePath;
-
   @override
-  State<RegularofferPage> createState() => _RegularofferPageState();
+  State<RegularofferBuyPage> createState() => _RegularofferBuyPageState();
 }
 
-class _RegularofferPageState extends State<RegularofferPage> {
+class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String selectedCategory = 'All';
   String searchQuery = '';
 
-  List<Map<String, dynamic>> packages = [
-    {
-      'title': '60GB + 1500MIN (30 Days)',
-      'price': 999,
-      'type': 'Bundles',
-    },
-    {
-      'title': '120GB Internet (30 Days)',
-      'price': 798,
-      'type': 'Internet',
-    },
-    {
-      'title': '5GB Internet (30 Days)',
-      'price': 298,
-      'type': 'Internet',
-    },
-    {
-      'title': '10GB Internet (30 Days)',
-      'price': 397,
-      'type': 'Internet',
-    },
-    {
-      'title': '20GB Internet (30 Days)',
-      'price': 497,
-      'type': 'Internet',
-    },
-    {
-      'title': '100 Minutes (7 Days)',
-      'price': 99,
-      'type': 'Minutes',
-    },
-    {
-      'title': 'Super Call Rate (30 Days)',
-      'price': 59,
-      'type': 'Call Rate',
-    },
-    {
-      'title': 'SMS Pack 500 (30 Days)',
-      'price': 49,
-      'type': 'SMS',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> filteredPackages = packages.where((pkg) {
-      bool matchCategory =
-          selectedCategory == 'All' || pkg['type'] == selectedCategory;
-      bool matchSearch =
-          pkg['title'].toLowerCase().contains(searchQuery.toLowerCase());
-      return matchCategory && matchSearch;
-    }).toList();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green.shade700,
@@ -79,7 +30,6 @@ class _RegularofferPageState extends State<RegularofferPage> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(110),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -94,7 +44,6 @@ class _RegularofferPageState extends State<RegularofferPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: CircleAvatar(
-                          backgroundColor: Colors.white,
                           backgroundImage: AssetImage(widget.operatorImagePath),
                           radius: 18,
                         ),
@@ -108,11 +57,8 @@ class _RegularofferPageState extends State<RegularofferPage> {
                           },
                           decoration: const InputDecoration(
                             hintText: 'Search',
-                            hintStyle: TextStyle(fontSize: 16),
                             suffixIcon: Icon(Icons.search, color: Colors.green),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 8),
                           ),
                         ),
                       ),
@@ -139,20 +85,58 @@ class _RegularofferPageState extends State<RegularofferPage> {
           ),
         ),
       ),
-      body: filteredPackages.isEmpty
-          ? const Center(child: Text('No packages found'))
-          : SingleChildScrollView(
-              child: Column(
-                children: filteredPackages.map((pkg) {
-                  return buildPackageItem(
-                    title: pkg['title'],
-                    price: pkg['price'],
-                    type: pkg['type'],
-                  );
-                }).toList(),
-              ),
-            ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestore
+            .collection('operators')
+            .doc(widget.operatorName)
+            .collection('regular')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text("No Regular Offers Found"));
+          }
+
+          final offers = snapshot.data!.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final title = data['offerType']?.toString() ?? '';
+            final type = _getType(data);
+            return (selectedCategory == 'All' || selectedCategory == type) &&
+                title.toLowerCase().contains(searchQuery.toLowerCase());
+          }).toList();
+
+          if (offers.isEmpty) {
+            return const Center(child: Text("No packages found"));
+          }
+
+          return ListView.builder(
+            itemCount: offers.length,
+            itemBuilder: (context, index) {
+              final data = offers[index].data() as Map<String, dynamic>;
+              return buildPackageCard(data);
+            },
+          );
+        },
+      ),
     );
+  }
+
+  String _getType(Map<String, dynamic> data) {
+    final internet = (data['internet'] ?? '').toString();
+    final minutes = (data['minutes'] ?? '').toString();
+    final sms = (data['sms'] ?? '').toString();
+    final callRate = (data['callRate'] ?? '').toString();
+
+    if (internet.isNotEmpty && minutes.isNotEmpty) return 'Bundles';
+    if (internet.isNotEmpty) return 'Internet';
+    if (minutes.isNotEmpty) return 'Minutes';
+    if (sms.isNotEmpty) return 'SMS';
+    if (callRate.isNotEmpty) return 'Call Rate';
+
+    return 'Others';
   }
 
   Widget categoryButton(String text) {
@@ -181,11 +165,7 @@ class _RegularofferPageState extends State<RegularofferPage> {
     );
   }
 
-  Widget buildPackageItem({
-    required String title,
-    required int price,
-    required String type,
-  }) {
+  Widget buildPackageCard(Map<String, dynamic> data) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -195,38 +175,60 @@ class _RegularofferPageState extends State<RegularofferPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(
+              data['offerType'] ?? 'No Title',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('$price BDT',
-                    style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold)),
-                Text(type,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(
+                  data['price'] != null
+                      ? '${data['price']} BDT'
+                      : 'Price not available',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  _getType(data),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              children: [
+                _buildDetailChip("Internet", data['internet']),
+                _buildDetailChip("Minutes", data['minutes']),
+                _buildDetailChip("SMS", data['sms']),
+                _buildDetailChip("Call Rate", data['callRate']),
+                _buildDetailChip("Validity", data['validity']),
+                _buildDetailChip("Terms", data['terms']),
               ],
             ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               height: 40,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
+                onPressed: () => _buyOffer(data),
+                icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                label: const Text(
+                  'Buy',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade700,
+                  backgroundColor: Colors.green,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-                  showBuyConfirmationDialog(title, price);
-                },
-                child: const Text('Buy',
-                    style: TextStyle(fontSize: 20, color: Colors.white)),
               ),
             ),
           ],
@@ -235,38 +237,28 @@ class _RegularofferPageState extends State<RegularofferPage> {
     );
   }
 
-  void showBuyConfirmationDialog(String title, int price) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Confirm Purchase'),
-          content: Text('Do you want to buy "$title" for $price BDT?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade700,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Successfully purchased "$title"!')),
-                );
-              },
-              child: const Text(
-                'Buy',
-                style: TextStyle(color: Colors.white, fontSize: 20),
-              ),
-            ),
-          ],
-        );
-      },
+  Widget _buildDetailChip(String label, dynamic value) {
+    if (value == null || value.toString().trim().isEmpty)
+      return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.green.shade400),
+      ),
+      child: Text(
+        "$label: ${value.toString()}",
+        style: const TextStyle(fontSize: 12, color: Colors.black87),
+      ),
     );
+  }
+
+  void _buyOffer(Map<String, dynamic> data) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Buying ${data['offerType'] ?? 'this offer'}...')),
+    );
+
+    // TODO: Implement your actual buy logic here
   }
 }
