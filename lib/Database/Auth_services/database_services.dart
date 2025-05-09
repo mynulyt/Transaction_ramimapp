@@ -6,13 +6,12 @@ class DatabaseService {
       FirebaseFirestore.instance.collection('offers');
 
   Future<void> submitOffer(Map<String, dynamic> offerData) async {
-    try {
-      // Debug line to ensure operator value
-      print("Submitting Offer with Operator: ${offerData['operator']}");
-      await offersCollection.add(offerData);
-    } catch (e) {
-      throw Exception('Failed to submit offer: $e');
-    }
+    final operator = offerData['operator']; // e.g., "Robi"
+    await FirebaseFirestore.instance
+        .collection('operators')
+        .doc(operator)
+        .collection('regular')
+        .add(offerData);
   }
 
   Future<List<Map<String, String>>> fetchUniqueOperators() async {

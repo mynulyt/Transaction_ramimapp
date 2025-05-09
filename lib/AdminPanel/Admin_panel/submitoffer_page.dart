@@ -17,8 +17,6 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
 
   String? selectedOperator;
   String? selectedOfferType;
-  List<String> operatorNames = [];
-  bool isLoading = true;
 
   final DatabaseService dbService = DatabaseService();
 
@@ -31,13 +29,13 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
     }
 
     final offerData = {
-      'operator': selectedOperator ?? '',
-      'offerType': selectedOfferType ?? '',
+      'operator': selectedOperator,
+      'offerType': selectedOfferType,
       'internet': internetController.text.trim(),
       'minutes': minutesController.text.trim(),
       'sms': smsController.text.trim(),
       'term': termController.text.trim(),
-      'submittedAt': FieldValue.serverTimestamp(), // Use server timestamp
+      'submittedAt': Timestamp.now(),
     };
 
     try {
@@ -49,29 +47,11 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
       minutesController.clear();
       smsController.clear();
       termController.clear();
-      setState(() {
-        selectedOperator = null;
-        selectedOfferType = null;
-      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),
       );
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    loadOperators();
-  }
-
-  void loadOperators() async {
-    final data = await dbService.fetchOperatorNames();
-    setState(() {
-      operatorNames = data;
-      isLoading = false;
-    });
   }
 
   @override
@@ -100,7 +80,7 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
             const SizedBox(height: 24),
             _buildSectionHeader('Offer Type'),
             const SizedBox(height: 8),
-            _buildOperatorGrid(),
+            _buildOfferTypeGrid(),
             const SizedBox(height: 24),
             _buildSectionHeader('Internet'),
             const SizedBox(height: 8),
@@ -173,9 +153,7 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
   }
 
   Widget _buildOperatorGrid() {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    List<String> operators = ['Robi', 'GP', 'TLK', 'BLK'];
 
     return GridView.builder(
       shrinkWrap: true,
@@ -186,15 +164,15 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
         mainAxisSpacing: 8,
         childAspectRatio: 1.5,
       ),
-      itemCount: operatorNames.length,
+      itemCount: operators.length,
       itemBuilder: (context, index) {
-        final name = operatorNames[index];
-        final isSelected = selectedOperator == name;
+        final operator = operators[index];
+        final isSelected = selectedOperator == operator;
 
         return ElevatedButton(
           onPressed: () {
             setState(() {
-              selectedOperator = name;
+              selectedOperator = operator;
             });
           },
           style: ElevatedButton.styleFrom(
@@ -206,18 +184,62 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
             ),
             elevation: 2,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/operators/$name.png',
-                width: 30,
-                height: 30,
-                errorBuilder: (_, __, ___) => const Icon(Icons.error, size: 30),
-              ),
-              const SizedBox(height: 4),
-              Text(name, style: const TextStyle(fontSize: 12)),
-            ],
+          child: Text(
+            operator,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOfferTypeGrid() {
+    List<String> offerTypes = [
+      'Bundle',
+      'Minutes',
+      'Internet',
+      'Call Rate',
+      'SMS'
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 2,
+      ),
+      itemCount: offerTypes.length,
+      itemBuilder: (context, index) {
+        final type = offerTypes[index];
+        final isSelected = selectedOfferType == type;
+
+        return ElevatedButton(
+          onPressed: () {
+            setState(() {
+              selectedOfferType = type;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            foregroundColor: isSelected ? Colors.white : Colors.teal[800],
+            backgroundColor: isSelected ? Colors.teal[700] : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: Colors.teal[300]!),
+            ),
+            elevation: 2,
+          ),
+          child: Text(
+            type,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         );
       },
