@@ -4,6 +4,7 @@ import 'package:ramimapp/AdminPanel/Admin_panel/adminpanel_page.dart';
 
 class AdminLoginPage extends StatelessWidget {
   AdminLoginPage({super.key});
+
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   final TextEditingController UseerNameController = TextEditingController();
   final TextEditingController PasswordController = TextEditingController();
@@ -24,78 +25,80 @@ class AdminLoginPage extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const SizedBox(height: 90),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withOpacity(0.5)),
-                ),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 50.0),
-                    // Username
-                    buildInputField(
-                      controller: UseerNameController,
-                      hintText: "Username",
-                      errorText: "Please Enter User Name",
-                    ),
-                    const SizedBox(height: 40.0),
-                    // Password
-                    buildInputField(
-                      controller: PasswordController,
-                      hintText: "Password",
-                      errorText: "Please Enter Password",
-                    ),
-                    const SizedBox(height: 40.0),
-                    // PIN
-                    buildInputField(
-                      controller: PinController,
-                      hintText: "PIN",
-                      errorText: "Please Enter Your Pin",
-                    ),
-                    const SizedBox(height: 40.0),
-                    // Phone
-                    buildInputField(
-                      controller: PhoneController,
-                      hintText: "Phone",
-                      errorText: "Please Enter Phone Number",
-                    ),
-                    const SizedBox(height: 40.0),
-
-                    GestureDetector(
-                      onTap: () {
-                        if (_formkey.currentState?.validate() ?? true) {
-                          LoginAdmin(context);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                        width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            "Log in",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.bold,
+          child: Form(
+            key: _formkey,
+            child: Column(
+              children: [
+                const SizedBox(height: 90),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 50.0),
+                      // Username
+                      buildInputField(
+                        controller: UseerNameController,
+                        hintText: "Username",
+                        errorText: "Please Enter User Name",
+                      ),
+                      const SizedBox(height: 40.0),
+                      // Password
+                      buildInputField(
+                        controller: PasswordController,
+                        hintText: "Password",
+                        errorText: "Please Enter Password",
+                      ),
+                      const SizedBox(height: 40.0),
+                      // PIN
+                      buildInputField(
+                        controller: PinController,
+                        hintText: "PIN",
+                        errorText: "Please Enter Your Pin",
+                      ),
+                      const SizedBox(height: 40.0),
+                      // Phone
+                      buildInputField(
+                        controller: PhoneController,
+                        hintText: "Phone",
+                        errorText: "Please Enter Phone Number",
+                      ),
+                      const SizedBox(height: 40.0),
+                      GestureDetector(
+                        onTap: () {
+                          if (_formkey.currentState?.validate() ?? false) {
+                            LoginAdmin(context);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "Log in",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20.0,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -118,7 +121,7 @@ class AdminLoginPage extends StatelessWidget {
         child: TextFormField(
           controller: controller,
           validator: (value) {
-            if (value == null || value.isEmpty) {
+            if (value == null || value.trim().isEmpty) {
               return errorText;
             }
             return null;
@@ -136,7 +139,7 @@ class AdminLoginPage extends StatelessWidget {
   }
 
   void LoginAdmin(BuildContext context) async {
-    final String inputId = UseerNameController.text.trim();
+    final String inputId = UseerNameController.text.trim().toLowerCase();
     final String inputPassword = PasswordController.text.trim();
     final String inputPin = PinController.text.trim();
     final String inputPhone = PhoneController.text.trim();
