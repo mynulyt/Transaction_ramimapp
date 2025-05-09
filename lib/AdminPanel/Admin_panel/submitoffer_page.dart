@@ -1,7 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ramimapp/Database/Auth_services/database_services.dart';
 
-class SubmitOfferPage extends StatelessWidget {
+class SubmitOfferPage extends StatefulWidget {
   const SubmitOfferPage({super.key});
+
+  @override
+  State<SubmitOfferPage> createState() => _SubmitOfferPageState();
+}
+
+class _SubmitOfferPageState extends State<SubmitOfferPage> {
+  final TextEditingController internetController = TextEditingController();
+  final TextEditingController minutesController = TextEditingController();
+  final TextEditingController smsController = TextEditingController();
+  final TextEditingController termController = TextEditingController();
+
+  String? selectedOperator;
+  String? selectedOfferType;
+
+  final DatabaseService dbService = DatabaseService();
+
+  void handleSubmit() async {
+    if (selectedOperator == null || selectedOfferType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select Operator and Offer Type")),
+      );
+      return;
+    }
+
+    final offerData = {
+      'operator': selectedOperator,
+      'offerType': selectedOfferType,
+      'internet': internetController.text.trim(),
+      'minutes': minutesController.text.trim(),
+      'sms': smsController.text.trim(),
+      'term': termController.text.trim(),
+      'submittedAt': Timestamp.now(),
+    };
+
+    try {
+      await dbService.submitOffer(offerData);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Offer submitted successfully!")),
+      );
+      internetController.clear();
+      minutesController.clear();
+      smsController.clear();
+      termController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,49 +74,46 @@ class SubmitOfferPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Operator Section
             _buildSectionHeader('Operator'),
             const SizedBox(height: 8),
             _buildOperatorGrid(),
             const SizedBox(height: 24),
-
-            // Offer Type Section
             _buildSectionHeader('Offer Type'),
             const SizedBox(height: 8),
             _buildOfferTypeGrid(),
             const SizedBox(height: 24),
-
-            // Internet
             _buildSectionHeader('Internet'),
             const SizedBox(height: 8),
-            _buildTextField(hintText: 'Enter internet amount (e.g. 5GB)'),
+            _buildTextField(
+              hintText: 'Enter internet amount (e.g. 5GB)',
+              controller: internetController,
+            ),
             const SizedBox(height: 24),
-
-            // Minutes
             _buildSectionHeader('Minutes'),
             const SizedBox(height: 8),
-            _buildTextField(hintText: 'Enter minutes (e.g. 100)'),
+            _buildTextField(
+              hintText: 'Enter minutes (e.g. 100)',
+              controller: minutesController,
+            ),
             const SizedBox(height: 24),
-
-            // SMS
             _buildSectionHeader('SMS'),
             const SizedBox(height: 8),
-            _buildTextField(hintText: 'Enter SMS count (e.g. 50)'),
+            _buildTextField(
+              hintText: 'Enter SMS count (e.g. 50)',
+              controller: smsController,
+            ),
             const SizedBox(height: 24),
-
-            // Term
             _buildSectionHeader('Term'),
             const SizedBox(height: 8),
-            _buildTextField(hintText: 'Enter offer term (e.g. 7 days)'),
+            _buildTextField(
+              hintText: 'Enter offer term (e.g. 7 days)',
+              controller: termController,
+            ),
             const SizedBox(height: 32),
-
-            // Submit Button
             Padding(
-              padding: const EdgeInsets.only(left: 30, right: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: ElevatedButton(
-                onPressed: () {
-                  // Handle submit action
-                },
+                onPressed: handleSubmit,
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.blue[700],
@@ -75,9 +123,7 @@ class SubmitOfferPage extends StatelessWidget {
                   elevation: 4,
                 ),
                 child: const Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 16,
-                  ),
+                  padding: EdgeInsets.symmetric(vertical: 16),
                   child: Text(
                     'SUBMIT OFFER',
                     style: TextStyle(
@@ -120,13 +166,18 @@ class SubmitOfferPage extends StatelessWidget {
       ),
       itemCount: operators.length,
       itemBuilder: (context, index) {
+        final operator = operators[index];
+        final isSelected = selectedOperator == operator;
+
         return ElevatedButton(
           onPressed: () {
-            // Handle operator selection
+            setState(() {
+              selectedOperator = operator;
+            });
           },
           style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.blue[800],
-            backgroundColor: Colors.white,
+            foregroundColor: isSelected ? Colors.white : Colors.blue[800],
+            backgroundColor: isSelected ? Colors.blue[700] : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
               side: BorderSide(color: Colors.blue[300]!),
@@ -134,7 +185,7 @@ class SubmitOfferPage extends StatelessWidget {
             elevation: 2,
           ),
           child: Text(
-            operators[index],
+            operator,
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -165,13 +216,18 @@ class SubmitOfferPage extends StatelessWidget {
       ),
       itemCount: offerTypes.length,
       itemBuilder: (context, index) {
+        final type = offerTypes[index];
+        final isSelected = selectedOfferType == type;
+
         return ElevatedButton(
           onPressed: () {
-            // Handle offer type selection
+            setState(() {
+              selectedOfferType = type;
+            });
           },
           style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.teal[800],
-            backgroundColor: Colors.white,
+            foregroundColor: isSelected ? Colors.white : Colors.teal[800],
+            backgroundColor: isSelected ? Colors.teal[700] : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
               side: BorderSide(color: Colors.teal[300]!),
@@ -179,7 +235,7 @@ class SubmitOfferPage extends StatelessWidget {
             elevation: 2,
           ),
           child: Text(
-            offerTypes[index],
+            type,
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -190,8 +246,10 @@ class SubmitOfferPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({required String hintText}) {
+  Widget _buildTextField(
+      {required String hintText, required TextEditingController controller}) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         hintText: hintText,
         filled: true,
