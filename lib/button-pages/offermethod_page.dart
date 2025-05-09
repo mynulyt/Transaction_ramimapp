@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ramimapp/AdminPanel/Admin_panel/regularoffer_page_delete.dart';
 import 'package:ramimapp/button-pages/regularoffer_page.dart';
 
 class OfferMethodPage extends StatelessWidget {
