@@ -30,13 +30,13 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
     }
 
     final offerData = {
-      'operator': selectedOperator,
-      'offerType': selectedOfferType,
+      'operator': selectedOperator!,
+      'offerType': selectedOfferType!,
       'internet': internetController.text.trim(),
       'minutes': minutesController.text.trim(),
       'sms': smsController.text.trim(),
       'term': termController.text.trim(),
-      'price': priceController.text.trim(), // added line
+      'price': priceController.text.trim(),
       'submittedAt': Timestamp.now(),
     };
 
@@ -163,16 +163,16 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
   }
 
   Widget _buildOperatorGrid() {
-    List<String> operators = ['Robi', 'GP', 'TLK', 'BLK'];
+    List<String> operators = ['Robi', 'GP', 'TLK', 'BLK', 'Airtel', 'Skitto'];
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+        crossAxisCount: 3, // updated to 3 for better layout with more items
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
-        childAspectRatio: 1.5,
+        childAspectRatio: 2,
       ),
       itemCount: operators.length,
       itemBuilder: (context, index) {

@@ -167,6 +167,14 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
   }
 
   Widget buildPackageCard(Map<String, dynamic> data, String docId) {
+    // Convert Firestore timestamp to readable format
+    String submittedAt = 'N/A';
+    if (data['submittedAt'] != null && data['submittedAt'] is Timestamp) {
+      final dateTime = (data['submittedAt'] as Timestamp).toDate();
+      submittedAt =
+          "${dateTime.day}-${dateTime.month}-${dateTime.year} ${dateTime.hour}:${dateTime.minute}";
+    }
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -210,7 +218,9 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
                 _buildDetailChip("SMS", data['sms']),
                 _buildDetailChip("Call Rate", data['callRate']),
                 _buildDetailChip("Validity", data['validity']),
-                _buildDetailChip("Terms", data['terms']),
+                _buildDetailChip(
+                    "Terms", data['term']), // 'term' from Firestore
+                _buildDetailChip("Submitted", submittedAt), // timestamp
               ],
             ),
             const SizedBox(height: 12),
