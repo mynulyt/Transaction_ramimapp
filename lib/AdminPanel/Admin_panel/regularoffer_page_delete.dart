@@ -20,8 +20,27 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
   String selectedCategory = 'All';
   String searchQuery = '';
 
+  String _getOperatorCode(String name) {
+    switch (name.toLowerCase()) {
+      case 'banglalink':
+        return 'BLK';
+      case 'teletalk':
+        return 'TLK';
+      case 'grameenphone':
+        return 'GP';
+      case 'robi':
+        return 'Robi';
+      case 'airtel':
+        return 'Airtel';
+      default:
+        return name;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final operatorCode = _getOperatorCode(widget.operatorName);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green.shade700,
@@ -88,7 +107,7 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('operators')
-            .doc(widget.operatorName)
+            .doc(operatorCode)
             .collection('regular')
             .snapshots(),
         builder: (context, snapshot) {
@@ -117,7 +136,7 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
             itemBuilder: (context, index) {
               final data = offers[index].data() as Map<String, dynamic>;
               final docId = offers[index].id;
-              return buildPackageCard(data, docId);
+              return buildPackageCard(data, docId, operatorCode);
             },
           );
         },
@@ -166,8 +185,8 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
     );
   }
 
-  Widget buildPackageCard(Map<String, dynamic> data, String docId) {
-    // Convert Firestore timestamp to readable format
+  Widget buildPackageCard(
+      Map<String, dynamic> data, String docId, String operatorCode) {
     String submittedAt = 'N/A';
     if (data['submittedAt'] != null && data['submittedAt'] is Timestamp) {
       final dateTime = (data['submittedAt'] as Timestamp).toDate();
@@ -218,9 +237,8 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
                 _buildDetailChip("SMS", data['sms']),
                 _buildDetailChip("Call Rate", data['callRate']),
                 _buildDetailChip("Validity", data['validity']),
-                _buildDetailChip(
-                    "Terms", data['term']), // 'term' from Firestore
-                _buildDetailChip("Submitted", submittedAt), // timestamp
+                _buildDetailChip("Terms", data['term']),
+                _buildDetailChip("Submitted", submittedAt),
               ],
             ),
             const SizedBox(height: 12),
@@ -228,7 +246,7 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
               width: double.infinity,
               height: 40,
               child: ElevatedButton.icon(
-                onPressed: () => _deleteOffer(docId),
+                onPressed: () => _deleteOffer(docId, operatorCode),
                 icon: const Icon(Icons.delete, color: Colors.white),
                 label: const Text(
                   'Delete',
@@ -266,11 +284,11 @@ class _RegularofferDeletePageState extends State<RegularofferDeletePage> {
     );
   }
 
-  Future<void> _deleteOffer(String docId) async {
+  Future<void> _deleteOffer(String docId, String operatorCode) async {
     try {
       await _firestore
           .collection('operators')
-          .doc(widget.operatorName)
+          .doc(operatorCode)
           .collection('regular')
           .doc(docId)
           .delete();
