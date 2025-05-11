@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class MoneyRechargePage extends StatefulWidget {
@@ -13,6 +15,126 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
   final TextEditingController numberController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController pinController = TextEditingController();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  void _showPinDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: const [
+              Icon(Icons.lock, color: Colors.blueAccent),
+              SizedBox(width: 8),
+              Text("Enter PIN"),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Please enter your PIN to confirm recharge request.",
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: pinController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                decoration: InputDecoration(
+                  hintText: "6-digit PIN",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                pinController.clear();
+              },
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+              ),
+              child: const Text("Submit"),
+              onPressed: () async {
+                await _verifyPinAndSendRecharge();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _verifyPinAndSendRecharge() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    final userDoc =
+        await _firestore.collection('users').doc(currentUser.uid).get();
+
+    if (!userDoc.exists || !userDoc.data()!.containsKey('pin')) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('PIN not found. Please register properly.')),
+      );
+      return;
+    }
+
+    final correctPin = userDoc['pin'];
+    final enteredPin = pinController.text;
+
+    if (enteredPin == correctPin) {
+      await _sendRechargeRequestToAdmin();
+      Navigator.of(context).pop(); // Close popup
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Recharge request sent successfully!')),
+      );
+    } else {
+      Navigator.of(context).pop(); // Close popup
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Incorrect PIN.')),
+      );
+    }
+
+    pinController.clear();
+  }
+
+  Future<void> _sendRechargeRequestToAdmin() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    final rechargeRequest = {
+      'operator': widget.operatorName,
+      'number': numberController.text.trim(),
+      'amount': double.tryParse(amountController.text) ?? 0,
+      'description': descriptionController.text.trim(),
+      'uid': currentUser.uid,
+      'email': currentUser.email,
+      'timestamp': FieldValue.serverTimestamp(),
+      'status': 'pending',
+    };
+
+    await _firestore.collection('rechargeRequests').add(rechargeRequest);
+
+    numberController.clear();
+    amountController.clear();
+    descriptionController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,9 +201,10 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () {
-                // You can handle recharge logic here
-              },
+              onPressed: _showPinDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+              ),
               child: const Text("Confirm"),
             ),
           ],
