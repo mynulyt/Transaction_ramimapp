@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RegularofferBuyPage extends StatefulWidget {
@@ -20,8 +21,27 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
   String selectedCategory = 'All';
   String searchQuery = '';
 
+  String _getOperatorCode(String name) {
+    switch (name.toLowerCase()) {
+      case 'banglalink':
+        return 'BLK';
+      case 'teletalk':
+        return 'TLK';
+      case 'grameenphone':
+        return 'GP';
+      case 'robi':
+        return 'Robi';
+      case 'airtel':
+        return 'Airtel';
+      default:
+        return name;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final operatorCode = _getOperatorCode(widget.operatorName);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green.shade700,
@@ -88,7 +108,7 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('operators')
-            .doc(widget.operatorName)
+            .doc(operatorCode)
             .collection('regular')
             .snapshots(),
         builder: (context, snapshot) {
@@ -116,7 +136,8 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
             itemCount: offers.length,
             itemBuilder: (context, index) {
               final data = offers[index].data() as Map<String, dynamic>;
-              return buildPackageCard(data);
+              final docId = offers[index].id;
+              return buildPackageCard(data, docId, operatorCode);
             },
           );
         },
@@ -165,7 +186,15 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
     );
   }
 
-  Widget buildPackageCard(Map<String, dynamic> data) {
+  Widget buildPackageCard(
+      Map<String, dynamic> data, String docId, String operatorCode) {
+    String submittedAt = 'N/A';
+    if (data['submittedAt'] != null && data['submittedAt'] is Timestamp) {
+      final dateTime = (data['submittedAt'] as Timestamp).toDate();
+      submittedAt =
+          "${dateTime.day}-${dateTime.month}-${dateTime.year} ${dateTime.hour}:${dateTime.minute}";
+    }
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -175,10 +204,9 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              data['offerType'] ?? 'No Title',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            Text(data['offerType'] ?? 'No Title',
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -188,15 +216,12 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
                       ? '${data['price']} BDT'
                       : 'Price not available',
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontSize: 14,
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  _getType(data),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                Text(_getType(data),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
             const SizedBox(height: 12),
@@ -209,7 +234,8 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
                 _buildDetailChip("SMS", data['sms']),
                 _buildDetailChip("Call Rate", data['callRate']),
                 _buildDetailChip("Validity", data['validity']),
-                _buildDetailChip("Terms", data['terms']),
+                _buildDetailChip("Terms", data['term']),
+                _buildDetailChip("Submitted", submittedAt),
               ],
             ),
             const SizedBox(height: 12),
@@ -217,20 +243,14 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
               width: double.infinity,
               height: 40,
               child: ElevatedButton.icon(
-                onPressed: () => showBuyConfirmationDialog(
-                  data['offerType'] ?? 'No Title',
-                  int.tryParse(data['price'].toString()) ?? 0,
-                ),
+                onPressed: () => _showPinDialog(data),
                 icon: const Icon(Icons.shopping_cart, color: Colors.white),
-                label: const Text(
-                  'Buy',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
+                label: const Text('Buy',
+                    style: TextStyle(fontSize: 18, color: Colors.white)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.green.shade700,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                      borderRadius: BorderRadius.circular(8)),
                 ),
               ),
             ),
@@ -258,38 +278,66 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
     );
   }
 
-  void showBuyConfirmationDialog(String title, int price) {
+  void _showPinDialog(Map<String, dynamic> offerData) {
+    final TextEditingController pinController = TextEditingController();
+
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Confirm Purchase'),
-          content: Text('Do you want to buy "$title" for $price BDT?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade700,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Successfully purchased "$title"!')),
-                );
-              },
-              child: const Text(
-                'Buy',
-                style: TextStyle(color: Colors.white, fontSize: 20),
-              ),
-            ),
-          ],
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text("Enter PIN to Buy"),
+        content: TextField(
+          controller: pinController,
+          obscureText: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(hintText: 'Enter your PIN'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final enteredPin = pinController.text.trim();
+
+              // Fetching the current user ID from Firebase Auth
+              final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+              if (currentUserId != null) {
+                // Fetch the user's stored PIN from the 'users' collection in Firestore
+                final userDoc = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(currentUserId)
+                    .get();
+                final savedPin = userDoc.data()?['pin'];
+
+                if (enteredPin == savedPin) {
+                  // Successfully validated PIN, now create a request
+                  await FirebaseFirestore.instance
+                      .collection('requests')
+                      .doc('regular_buy_requests')
+                      .collection('items')
+                      .add({
+                    ...offerData,
+                    'requestedAt': Timestamp.now(),
+                    'userId': currentUserId,
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Request sent successfully')));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Invalid PIN')));
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Unable to fetch user information')));
+              }
+            },
+            child: const Text("Confirm"),
+          ),
+        ],
+      ),
     );
   }
 }

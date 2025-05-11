@@ -54,6 +54,8 @@ class OfferMethodPage extends StatelessWidget {
                               imagePath: 'images/banglalink.jpg'),
                           OperatorBox(
                               name: "Skitto", imagePath: 'images/skitto.png'),
+                          OperatorBox(
+                              name: "Teletalk", imagePath: 'images/tlk.jpeg'),
                         ],
                       ),
                       SizedBox(height: 40),
