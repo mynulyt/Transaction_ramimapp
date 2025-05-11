@@ -28,6 +28,7 @@ class RechargePage extends StatelessWidget {
                 OperatorBox(
                     name: "Banglalink", imagePath: 'images/banglalink.jpg'),
                 OperatorBox(name: "Skitto", imagePath: 'images/skitto.png'),
+                OperatorBox(name: "Teletalk", imagePath: 'images/tlk.jpeg'),
               ],
             ),
           ],

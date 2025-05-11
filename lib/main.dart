@@ -104,9 +104,9 @@ class _MainScreenState extends State<MainScreen> {
         }
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
-        final double balance = (data['balance'] ?? 0).toDouble();
-        final double advance = (data['advance'] ?? 0).toDouble();
-        final double due = (data['due'] ?? 0).toDouble();
+        final double balance = _parseDouble(data['balance']);
+        final double advance = _parseDouble(data['advance']);
+        final double due = _parseDouble(data['due']);
         final String name = data['name'] ?? 'User Name';
         final String phone = data['phone'] ?? 'Unknown';
 
@@ -283,6 +283,14 @@ class _MainScreenState extends State<MainScreen> {
     } else {
       return "U"; // Default fallback
     }
+  }
+
+  double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 }
 

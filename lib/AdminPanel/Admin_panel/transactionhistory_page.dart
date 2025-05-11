@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TransactionHistoryPage extends StatelessWidget {
   const TransactionHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaction History'),
@@ -12,50 +16,41 @@ class TransactionHistoryPage extends StatelessWidget {
         backgroundColor: Colors.blue[800],
         elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildTransactionCard(
-            context,
-            name: "John Doe",
-            amount: "+\$500.00",
-            date: "Today, 10:30 AM",
-            type: "Money Received",
-            isPositive: true,
-          ),
-          _buildTransactionCard(
-            context,
-            name: "Amazon Purchase",
-            amount: "-\$120.50",
-            date: "Yesterday, 2:15 PM",
-            type: "Shopping",
-            isPositive: false,
-          ),
-          _buildTransactionCard(
-            context,
-            name: "Sarah Smith",
-            amount: "+\$200.00",
-            date: "Mar 15, 9:45 AM",
-            type: "Payment Received",
-            isPositive: true,
-          ),
-          _buildTransactionCard(
-            context,
-            name: "Electric Bill",
-            amount: "-\$85.75",
-            date: "Mar 12, 11:20 AM",
-            type: "Utility Payment",
-            isPositive: false,
-          ),
-          _buildTransactionCard(
-            context,
-            name: "Mike Johnson",
-            amount: "+\$350.00",
-            date: "Mar 10, 4:30 PM",
-            type: "Invoice Payment",
-            isPositive: true,
-          ),
-        ],
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('transactions')
+            .where('userId', isEqualTo: uid)
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No transaction history found.'));
+          }
+
+          final transactions = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: transactions.length,
+            itemBuilder: (context, index) {
+              final tx = transactions[index];
+              final data = tx.data() as Map<String, dynamic>;
+
+              return _buildTransactionCard(
+                context,
+                name: data['name'] ?? 'Unknown',
+                amount: data['amount'] ?? '',
+                date: data['date'] ?? '',
+                type: data['type'] ?? '',
+                isPositive: data['isPositive'] ?? true,
+              );
+            },
+          );
+        },
       ),
     );
   }

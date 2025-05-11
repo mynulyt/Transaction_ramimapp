@@ -1,7 +1,8 @@
+// lib/admin_panel/mailbox_page.dart
 import 'package:flutter/material.dart';
-import 'package:ramimapp/AdminPanel/Admin_panel/money_request_page.dart';
-import 'package:ramimapp/AdminPanel/Admin_panel/offer_request_page.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/rechagerequest_page.dart';
+import 'money_request_page.dart';
+import 'offer_request_page.dart';
 
 class MailboxPage extends StatelessWidget {
   const MailboxPage({super.key});
@@ -17,42 +18,24 @@ class MailboxPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Container(
-          height: 300,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
-                spreadRadius: 2,
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildMailboxButton(
-                    context, 'Money Request', const Color(0xFFB2DFDB)),
-                const SizedBox(height: 12),
-                _buildMailboxButton(
-                    context, 'Recharge Request', const Color(0xFFD7CCC8)),
-                const SizedBox(height: 12),
-                _buildMailboxButton(
-                    context, 'Offer Request', const Color(0xFFE0E0E0)),
-              ],
-            ),
-          ),
+        child: Column(
+          children: [
+            _buildMailboxButton(context, 'Money Request',
+                const Color(0xFFB2DFDB), const MoneyRequestPage()),
+            const SizedBox(height: 12),
+            _buildMailboxButton(context, 'Recharge Request',
+                const Color(0xFFD7CCC8), const RechargeRequestPage()),
+            const SizedBox(height: 12),
+            _buildMailboxButton(context, 'Offer Request',
+                const Color(0xFFE0E0E0), const OfferRequestPage()),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildMailboxButton(BuildContext context, String title, Color color) {
+  Widget _buildMailboxButton(
+      BuildContext context, String title, Color color, Widget page) {
     return Material(
       borderRadius: BorderRadius.circular(12),
       elevation: 3,
@@ -60,39 +43,10 @@ class MailboxPage extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: color,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: ElevatedButton(
-          onPressed: () {
-            if (title == 'Money Request') {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const MoneyRequestPage()),
-              );
-            }
-            if (title == 'Recharge Request') {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const RechargeRequestPage()),
-              );
-            }
-            if (title == 'Offer Request') {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const OfferRequestPage()),
-              );
-            }
-          },
+          onPressed: () =>
+              Navigator.push(context, MaterialPageRoute(builder: (_) => page)),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,

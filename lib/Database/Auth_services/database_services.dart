@@ -62,4 +62,28 @@ class DatabaseService {
       throw Exception('Failed to delete offer: $e');
     }
   }
+
+  //Request
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> updateRequestStatus({
+    required String collection,
+    required String docId,
+    required String status,
+  }) async {
+    await _firestore
+        .collection(collection)
+        .doc(docId)
+        .update({'status': status});
+  }
+
+  Future<void> updateUserBalance({
+    required String userId,
+    required double amount,
+  }) async {
+    final userRef = _firestore.collection('users').doc(userId);
+    final snapshot = await userRef.get();
+    final currentBalance = snapshot.data()?['balance'] ?? 0.0;
+    await userRef.update({'balance': currentBalance + amount});
+  }
 }

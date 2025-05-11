@@ -55,7 +55,7 @@ class DeleteOfferMethodPage extends StatelessWidget {
                           OperatorBox(
                               name: "Skitto", imagePath: 'images/skitto.png'),
                           OperatorBox(
-                              name: "Teletalk", imagePath: 'images/tlk.png'),
+                              name: "Teletalk", imagePath: 'images/tlk.jpeg'),
                         ],
                       ),
                       SizedBox(height: 40),

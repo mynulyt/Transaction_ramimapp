@@ -21,6 +21,8 @@ class _AddUserPageState extends State<AddUserPage> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
+  final TextEditingController _referenceController =
+      TextEditingController(); // ✅ New controller
 
   String _gender = "Male";
   String _address = "Dhaka";
@@ -50,6 +52,7 @@ class _AddUserPageState extends State<AddUserPage> {
             "pin": _pinController.text.trim(),
             "uid": FirebaseAuth.instance.currentUser!.uid,
             "createdAt": Timestamp.now(),
+            "reference": _referenceController.text.trim(), // ✅ Reference added
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -75,7 +78,7 @@ class _AddUserPageState extends State<AddUserPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Register a New Account"),
+        title: const Text("Add a New User Account"),
         backgroundColor: Colors.green,
         toolbarHeight: 70,
       ),
@@ -106,6 +109,8 @@ class _AddUserPageState extends State<AddUserPage> {
                     obscureText: true, controller: _passwordController),
                 buildTextField(Icons.vpn_key, "Pin",
                     obscureText: true, controller: _pinController),
+                buildTextField(Icons.person_add, "Reference Code (optional)",
+                    controller: _referenceController), // ✅ UI field added
                 buildGenderDropdown(Icons.person, "Select Gender"),
                 buildAutoCompleteField(
                   icon: Icons.map,

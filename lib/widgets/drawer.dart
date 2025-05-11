@@ -68,7 +68,7 @@ Widget buildDrawer(BuildContext context) {
               leading: const Icon(Icons.home),
               title: const Text('Home'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const MainScreen()),
                 );
@@ -78,7 +78,7 @@ Widget buildDrawer(BuildContext context) {
               leading: const Icon(Icons.live_tv),
               title: const Text('Live Recharge'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const SendMoneyPage()),
