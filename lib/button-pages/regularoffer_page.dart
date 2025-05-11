@@ -241,8 +241,9 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
   }
 
   Widget _buildDetailChip(String label, dynamic value) {
-    if (value == null || value.toString().trim().isEmpty)
+    if (value == null || value.toString().trim().isEmpty) {
       return const SizedBox.shrink();
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
