@@ -104,7 +104,7 @@ class _MainScreenState extends State<MainScreen> {
         }
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
-        final double balance = _parseDouble(data['balance']);
+        final double balance = _parseDouble(data['main']);
         final double advance = _parseDouble(data['advance']);
         final double due = _parseDouble(data['due']);
         final String name = data['name'] ?? 'User Name';
