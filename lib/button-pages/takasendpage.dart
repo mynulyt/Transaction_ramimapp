@@ -117,6 +117,10 @@ class _TakaSendPageState extends State<TakaSendPage> {
     final currentUser = _auth.currentUser;
     if (currentUser == null) return;
 
+    final userDoc =
+        await _firestore.collection('users').doc(currentUser.uid).get();
+    final userName = userDoc.data()?['name'] ?? 'Unknown';
+
     final request = {
       'method': widget.selectedMethod,
       'number': numberController.text.trim(),
@@ -124,8 +128,9 @@ class _TakaSendPageState extends State<TakaSendPage> {
       'description': descriptionController.text.trim(),
       'uid': currentUser.uid,
       'email': currentUser.email,
+      'name': userName, // ✅ add user's name here
       'timestamp': FieldValue.serverTimestamp(),
-      'status': 'pending', // admin will update this
+      'status': 'pending',
     };
 
     await _firestore.collection('moneyRequests').add(request);

@@ -280,16 +280,34 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
 
   void _showPinDialog(Map<String, dynamic> offerData) {
     final TextEditingController pinController = TextEditingController();
+    final TextEditingController numberController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Enter PIN to Buy"),
-        content: TextField(
-          controller: pinController,
-          obscureText: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: 'Enter your PIN'),
+        title: const Text("Enter Recharge Details"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: numberController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                hintText: 'Enter recharge number',
+                prefixIcon: Icon(Icons.phone),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: pinController,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: 'Enter your PIN',
+                prefixIcon: Icon(Icons.lock),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -299,12 +317,19 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
           ElevatedButton(
             onPressed: () async {
               final enteredPin = pinController.text.trim();
+              final rechargeNumber = numberController.text.trim();
 
-              // Fetching the current user ID from Firebase Auth
+              if (rechargeNumber.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Please enter a recharge number')),
+                );
+                return;
+              }
+
               final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
               if (currentUserId != null) {
-                // Fetch the user's stored PIN from the 'users' collection in Firestore
                 final userDoc = await FirebaseFirestore.instance
                     .collection('users')
                     .doc(currentUserId)
@@ -312,7 +337,6 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
                 final savedPin = userDoc.data()?['pin'];
 
                 if (enteredPin == savedPin) {
-                  // Successfully validated PIN, now create a request
                   await FirebaseFirestore.instance
                       .collection('requests')
                       .doc('regular_buy_requests')
@@ -321,17 +345,22 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
                     ...offerData,
                     'requestedAt': Timestamp.now(),
                     'userId': currentUserId,
+                    'rechargeNumber': rechargeNumber,
                   });
+
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Request sent successfully')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Request sent successfully')),
+                  );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invalid PIN')));
+                    const SnackBar(content: Text('Invalid PIN')),
+                  );
                 }
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Unable to fetch user information')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('User not authenticated')),
+                );
               }
             },
             child: const Text("Confirm"),
