@@ -3,10 +3,8 @@ import 'package:ramimapp/AdminPanel/Admin_panel/delete_offer_method.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/mailbox_page.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/submitoffer_page.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/transactionhistory_page.dart';
-
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
-import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 
 class AdminPanelPage extends StatelessWidget {
@@ -110,8 +108,6 @@ class AdminPanelPage extends StatelessWidget {
                       'Transaction History',
                       Colors.purple,
                       const TransactionHistoryPage()),
-                  _buildGridButton(context, Icons.send, 'Send Money',
-                      Colors.indigo, const SendMoneyPage()),
                   _buildGridButton(context, Icons.mail, 'Mail Box', Colors.pink,
                       const MailboxPage()),
                 ],
