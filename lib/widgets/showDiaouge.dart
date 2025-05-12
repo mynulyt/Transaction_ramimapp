@@ -2,14 +2,14 @@
 import 'package:flutter/material.dart';
 
 Future<String?> showPinDialog(BuildContext context) async {
-  final TextEditingController _pinController = TextEditingController();
+  final TextEditingController pinController = TextEditingController();
 
   return showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
       title: const Text('Enter Admin PIN'),
       content: TextField(
-        controller: _pinController,
+        controller: pinController,
         obscureText: true,
         keyboardType: TextInputType.number,
         decoration: const InputDecoration(hintText: 'PIN'),
@@ -20,7 +20,7 @@ Future<String?> showPinDialog(BuildContext context) async {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () => Navigator.pop(context, _pinController.text),
+          onPressed: () => Navigator.pop(context, pinController.text),
           child: const Text('Confirm'),
         ),
       ],

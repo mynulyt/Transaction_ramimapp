@@ -14,8 +14,9 @@ class MoneyRequestPage extends StatelessWidget {
         elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream:
-            FirebaseFirestore.instance.collection('money_requests').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('moneyRequests')
+            .snapshots(), // ✅ Correct collection name
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
@@ -83,7 +84,7 @@ class MoneyRequestPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    data['name'] ?? 'Unknown',
+                                    data['email'] ?? 'Unknown',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -91,10 +92,11 @@ class MoneyRequestPage extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text('User ID: ${data['uid'] ?? 'N/A'}'),
-                                  Text(
-                                      'Requested Amount: ${data['amount'] ?? 'N/A'}'),
-                                  Text('Phone: ${data['phone'] ?? 'N/A'}'),
-                                  Text('Note: ${data['note'] ?? 'N/A'}'),
+                                  Text('Amount: ${data['amount'] ?? 'N/A'}'),
+                                  Text('Method: ${data['method'] ?? 'N/A'}'),
+                                  Text('Number: ${data['number'] ?? 'N/A'}'),
+                                  Text('Note: ${data['description'] ?? ''}'),
+                                  Text('Status: ${data['status'] ?? ''}'),
                                 ],
                               ),
                             ),
@@ -107,7 +109,7 @@ class MoneyRequestPage extends StatelessWidget {
                               child: _buildActionButton(
                                   'Accept', const Color(0xFFC8E6C9), () async {
                                 await FirebaseFirestore.instance
-                                    .collection('money_requests')
+                                    .collection('moneyRequests')
                                     .doc(docId)
                                     .delete();
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -121,7 +123,7 @@ class MoneyRequestPage extends StatelessWidget {
                               child: _buildActionButton(
                                   'Cancel', const Color(0xFFFFCDD2), () async {
                                 await FirebaseFirestore.instance
-                                    .collection('money_requests')
+                                    .collection('moneyRequests')
                                     .doc(docId)
                                     .delete();
                                 ScaffoldMessenger.of(context).showSnackBar(

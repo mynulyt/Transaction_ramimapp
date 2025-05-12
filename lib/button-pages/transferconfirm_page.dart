@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class TransferConfirmPage extends StatefulWidget {
+  const TransferConfirmPage({super.key});
+
   @override
   _TransferConfirmPageState createState() => _TransferConfirmPageState();
 }
@@ -31,7 +33,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
 
     if (acNumber.isEmpty || amount.isEmpty || operator.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill all required fields')),
+        const SnackBar(content: Text('Please fill all required fields')),
       );
       return;
     }
@@ -48,7 +50,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Transfer request submitted')),
+      const SnackBar(content: Text('Transfer request submitted')),
     );
 
     _acNumberController.clear();
@@ -60,22 +62,22 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Transfer Confirmation')),
+      appBar: AppBar(title: const Text('Transfer Confirmation')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             _buildTextField(_acNumberController, 'AC Number'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             _buildTextField(_amountController, 'Amount'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             _buildTextField(_operatorController, 'Operator'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             _buildTextField(_descriptionController, 'Description (optional)'),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submitRechargeRequest,
-              child: Text('Submit Request'),
+              child: const Text('Submit Request'),
             ),
           ],
         ),
@@ -88,7 +90,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
       ),
     );
   }

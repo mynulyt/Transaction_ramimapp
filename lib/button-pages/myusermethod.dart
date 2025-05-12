@@ -10,7 +10,7 @@ class MyUserMethod extends StatefulWidget {
 
 class _MyUserMethodState extends State<MyUserMethod> {
   String _searchText = '';
-  Map<String, bool> _visibleCards = {};
+  final Map<String, bool> _visibleCards = {};
 
   @override
   Widget build(BuildContext context) {

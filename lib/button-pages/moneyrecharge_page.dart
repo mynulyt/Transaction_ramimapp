@@ -27,8 +27,8 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: const [
+          title: const Row(
+            children: [
               Icon(Icons.lock, color: Colors.blueAccent),
               SizedBox(width: 8),
               Text("Enter PIN"),

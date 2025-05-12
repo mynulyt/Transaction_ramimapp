@@ -15,7 +15,7 @@ class RechargeRequestPage extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('recharge_requests')
+            .collection('rechargeRequests') // ✅ Collection name fixed
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -84,17 +84,18 @@ class RechargeRequestPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    data['name'] ?? 'Unknown',
+                                    data['email'] ?? 'Unknown',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('Account: ${data['account'] ?? 'N/A'}'),
-                                  Text('Type: ${data['type'] ?? 'N/A'}'),
+                                  Text(
+                                      'Operator: ${data['operator'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Number: ${data['number'] ?? 'N/A'}'),
+                                  Text('Note: ${data['description'] ?? 'N/A'}'),
                                 ],
                               ),
                             ),
@@ -107,7 +108,7 @@ class RechargeRequestPage extends StatelessWidget {
                               child: _buildActionButton(
                                   'Accept', const Color(0xFFD7CCC8), () async {
                                 await FirebaseFirestore.instance
-                                    .collection('recharge_requests')
+                                    .collection('rechargeRequests')
                                     .doc(docId)
                                     .delete();
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -122,7 +123,7 @@ class RechargeRequestPage extends StatelessWidget {
                               child: _buildActionButton(
                                   'Cancel', const Color(0xFFEF9A9A), () async {
                                 await FirebaseFirestore.instance
-                                    .collection('recharge_requests')
+                                    .collection('rechargeRequests')
                                     .doc(docId)
                                     .delete();
                                 ScaffoldMessenger.of(context).showSnackBar(

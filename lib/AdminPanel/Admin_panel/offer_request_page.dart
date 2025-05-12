@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class OfferRequestPage extends StatelessWidget {
-  const OfferRequestPage({super.key});
+class RegularBuyRequestPage extends StatelessWidget {
+  const RegularBuyRequestPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Offer Request'),
+        title: const Text('Regular Buy Requests'),
         centerTitle: true,
         backgroundColor: Colors.blue[800],
-        elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream:
-            FirebaseFirestore.instance.collection('offer_requests').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('requests')
+            .doc('regular_buy_requests')
+            .collection('items')
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
@@ -28,7 +30,7 @@ class OfferRequestPage extends StatelessWidget {
           final docs = snapshot.data!.docs;
 
           if (docs.isEmpty) {
-            return const Center(child: Text('No offer requests found.'));
+            return const Center(child: Text('No regular buy requests found.'));
           }
 
           return ListView.builder(
@@ -37,6 +39,14 @@ class OfferRequestPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final data = docs[index].data() as Map<String, dynamic>;
               final docId = docs[index].id;
+
+              String operator = data['operator'] ?? 'Unknown';
+              String price = data['price'] ?? 'N/A';
+              String internet = data['internet'] ?? 'N/A';
+              String minutes = data['minutes'] ?? 'N/A';
+              String sms = data['sms'] ?? 'N/A';
+              String term = data['term'] ?? 'N/A';
+              String offerType = data['offerType'] ?? 'N/A';
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -56,89 +66,36 @@ class OfferRequestPage extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey[200],
-                                border: Border.all(
-                                  color: Colors.purple[100]!,
-                                  width: 2,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.local_offer,
-                                size: 30,
-                                color: Colors.blueGrey,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Offer from ${data['sender'] ?? 'Unknown'}',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Account: ${data['account'] ?? 'N/A'}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Type: ${data['type'] ?? 'N/A'}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Amount: ${data['amount'] ?? 'N/A'}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Valid until: ${data['valid_until'] ?? 'N/A'}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                        Text(
+                          '$operator Offer',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 8),
+                        _buildInfoRow('Internet', internet),
+                        _buildInfoRow('Minutes', minutes),
+                        _buildInfoRow('SMS', sms),
+                        _buildInfoRow('Price', '$price ৳'),
+                        _buildInfoRow('Term', term),
+                        _buildInfoRow('Offer Type', offerType),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
                               child: _buildActionButton(
                                 'Accept',
-                                const Color(0xFFE0F7FA),
+                                Colors.green[100]!,
                                 () async {
                                   await FirebaseFirestore.instance
-                                      .collection('offer_requests')
+                                      .collection('requests')
+                                      .doc('regular_buy_requests')
+                                      .collection('items')
                                       .doc(docId)
                                       .delete();
-                                  // Optionally show snackbar
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                         content: Text('Offer accepted.')),
@@ -150,10 +107,12 @@ class OfferRequestPage extends StatelessWidget {
                             Expanded(
                               child: _buildActionButton(
                                 'Cancel',
-                                const Color(0xFFEF9A9A),
+                                Colors.red[100]!,
                                 () async {
                                   await FirebaseFirestore.instance
-                                      .collection('offer_requests')
+                                      .collection('requests')
+                                      .doc('regular_buy_requests')
+                                      .collection('items')
                                       .doc(docId)
                                       .delete();
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -177,19 +136,26 @@ class OfferRequestPage extends StatelessWidget {
     );
   }
 
+  Widget _buildInfoRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Text(
+        '$title: $value',
+        style: const TextStyle(fontSize: 14, color: Colors.grey),
+      ),
+    );
+  }
+
   Widget _buildActionButton(String text, Color color, VoidCallback onPressed) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: color.withOpacity(0.3),
+        color: color.withOpacity(0.5),
       ),
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
         ),
         child: Text(
           text,
