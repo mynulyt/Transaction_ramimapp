@@ -39,7 +39,7 @@ class TransferMethodPage extends StatelessWidget {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => TransferConfirmPage()));
+                          builder: (context) => const TransferConfirmPage()));
                 },
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
