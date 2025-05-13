@@ -84,14 +84,14 @@ class MoneyRequestPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    data['email'] ?? 'Unknown',
+                                    data['name'] ?? 'Unknown',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('User ID: ${data['uid'] ?? 'N/A'}'),
+                                  Text('Email: ${data['email'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Method: ${data['method'] ?? 'N/A'}'),
                                   Text('Number: ${data['number'] ?? 'N/A'}'),

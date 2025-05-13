@@ -8,7 +8,7 @@ class RegularBuyRequestPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Regular Buy Requests'),
+        title: const Text('Regular Offer Buy Requests'),
         centerTitle: true,
         backgroundColor: Colors.blue[800],
       ),
@@ -42,11 +42,14 @@ class RegularBuyRequestPage extends StatelessWidget {
 
               String operator = data['operator'] ?? 'Unknown';
               String price = data['price'] ?? 'N/A';
+              String name = data['userName'] ?? 'N/A';
               String internet = data['internet'] ?? 'N/A';
               String minutes = data['minutes'] ?? 'N/A';
               String sms = data['sms'] ?? 'N/A';
               String term = data['term'] ?? 'N/A';
               String offerType = data['offerType'] ?? 'N/A';
+              String number = data['rechargeNumber'] ?? 'N/A';
+              String email = data['userEmail'] ?? 'N/A';
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -80,6 +83,35 @@ class RegularBuyRequestPage extends StatelessWidget {
                         _buildInfoRow('Minutes', minutes),
                         _buildInfoRow('SMS', sms),
                         _buildInfoRow('Price', '$price ৳'),
+                        _buildInfoRow('Name', name),
+
+                        // 🔥 Copyable Recharge Number
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Recharge Number: ',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Expanded(
+                                child: SelectableText(
+                                  number,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        _buildInfoRow('Email', email),
                         _buildInfoRow('Term', term),
                         _buildInfoRow('Offer Type', offerType),
                         const SizedBox(height: 16),
@@ -98,7 +130,8 @@ class RegularBuyRequestPage extends StatelessWidget {
                                       .delete();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                        content: Text('Offer accepted.')),
+                                      content: Text('Offer accepted.'),
+                                    ),
                                   );
                                 },
                               ),
@@ -117,7 +150,8 @@ class RegularBuyRequestPage extends StatelessWidget {
                                       .delete();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                        content: Text('Offer cancelled.')),
+                                      content: Text('Offer cancelled.'),
+                                    ),
                                   );
                                 },
                               ),

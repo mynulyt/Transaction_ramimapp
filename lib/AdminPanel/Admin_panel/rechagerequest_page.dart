@@ -84,7 +84,7 @@ class RechargeRequestPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    data['email'] ?? 'Unknown',
+                                    data['name'] ?? 'Unknown',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -94,6 +94,7 @@ class RechargeRequestPage extends StatelessWidget {
                                   Text(
                                       'Operator: ${data['operator'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
+                                  Text('Email: ${data['email'] ?? 'N/A'}'),
                                   Text('Number: ${data['number'] ?? 'N/A'}'),
                                   Text('Note: ${data['description'] ?? 'N/A'}'),
                                 ],
