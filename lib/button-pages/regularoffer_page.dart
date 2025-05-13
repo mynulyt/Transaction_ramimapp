@@ -334,7 +334,10 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
                     .collection('users')
                     .doc(currentUserId)
                     .get();
+
                 final savedPin = userDoc.data()?['pin'];
+                final userName = userDoc.data()?['name'] ?? 'Unknown';
+                final userEmail = userDoc.data()?['email'] ?? 'Unknown';
 
                 if (enteredPin == savedPin) {
                   await FirebaseFirestore.instance
@@ -346,6 +349,8 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
                     'requestedAt': Timestamp.now(),
                     'userId': currentUserId,
                     'rechargeNumber': rechargeNumber,
+                    'userName': userName,
+                    'userEmail': userEmail,
                   });
 
                   Navigator.pop(context);

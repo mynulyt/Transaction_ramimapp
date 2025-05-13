@@ -118,6 +118,13 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
     final currentUser = _auth.currentUser;
     if (currentUser == null) return;
 
+    final userDoc =
+        await _firestore.collection('users').doc(currentUser.uid).get();
+    final userData = userDoc.data();
+    final fullName =
+        userData?['name'] ?? 'Unknown'; // Assumes 'name' field exists
+    final aiFile = userData?['aiFile'] ?? 'Not uploaded'; // Optional field
+
     final rechargeRequest = {
       'operator': widget.operatorName,
       'number': numberController.text.trim(),
@@ -125,6 +132,8 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
       'description': descriptionController.text.trim(),
       'uid': currentUser.uid,
       'email': currentUser.email,
+      'userName': fullName,
+      'aiFile': aiFile,
       'timestamp': FieldValue.serverTimestamp(),
       'status': 'pending',
     };
