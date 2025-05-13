@@ -94,7 +94,31 @@ class MoneyRequestPage extends StatelessWidget {
                                   Text('Email: ${data['email'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Method: ${data['method'] ?? 'N/A'}'),
-                                  Text('Number: ${data['number'] ?? 'N/A'}'),
+
+                                  // 🔥 Copyable Number field
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Number: ',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: SelectableText(
+                                          data['number'] ?? 'N/A',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
                                   Text('Note: ${data['description'] ?? ''}'),
                                   Text('Status: ${data['status'] ?? ''}'),
                                 ],
@@ -107,31 +131,38 @@ class MoneyRequestPage extends StatelessWidget {
                           children: [
                             Expanded(
                               child: _buildActionButton(
-                                  'Accept', const Color(0xFFC8E6C9), () async {
-                                await FirebaseFirestore.instance
-                                    .collection('moneyRequests')
-                                    .doc(docId)
-                                    .delete();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Money request accepted.')),
-                                );
-                              }),
+                                'Accept',
+                                const Color(0xFFC8E6C9),
+                                () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('moneyRequests')
+                                      .doc(docId)
+                                      .delete();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Money request accepted.')),
+                                  );
+                                },
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildActionButton(
-                                  'Cancel', const Color(0xFFFFCDD2), () async {
-                                await FirebaseFirestore.instance
-                                    .collection('moneyRequests')
-                                    .doc(docId)
-                                    .delete();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Money request cancelled.')),
-                                );
-                              }),
+                                'Cancel',
+                                const Color(0xFFFFCDD2),
+                                () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('moneyRequests')
+                                      .doc(docId)
+                                      .delete();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Money request cancelled.')),
+                                  );
+                                },
+                              ),
                             ),
                           ],
                         ),

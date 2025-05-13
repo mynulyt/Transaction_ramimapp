@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 
 class RechargeRequestPage extends StatelessWidget {
   const RechargeRequestPage({super.key});
@@ -15,7 +16,7 @@ class RechargeRequestPage extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('rechargeRequests') // ✅ Collection name fixed
+            .collection('rechargeRequests')
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -84,18 +85,41 @@ class RechargeRequestPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    data['name'] ?? 'Unknown',
+                                    data['operator'] ?? 'Unknown',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                      'Operator: ${data['operator'] ?? 'N/A'}'),
+                                  Text('Name: ${data['name'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Email: ${data['email'] ?? 'N/A'}'),
-                                  Text('Number: ${data['number'] ?? 'N/A'}'),
+
+                                  // ✅ Copyable number
+                                  Row(
+                                    children: [
+                                      const Text('Number: ',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w500)),
+                                      SelectableText(
+                                        data['number'] ?? 'N/A',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w400),
+                                        onTap: () {
+                                          Clipboard.setData(
+                                            ClipboardData(
+                                                text: data['number'] ?? ''),
+                                          );
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                                  content:
+                                                      Text('Number copied')));
+                                        },
+                                      ),
+                                    ],
+                                  ),
+
                                   Text('Note: ${data['description'] ?? 'N/A'}'),
                                 ],
                               ),
@@ -107,32 +131,38 @@ class RechargeRequestPage extends StatelessWidget {
                           children: [
                             Expanded(
                               child: _buildActionButton(
-                                  'Accept', const Color(0xFFD7CCC8), () async {
-                                await FirebaseFirestore.instance
-                                    .collection('rechargeRequests')
-                                    .doc(docId)
-                                    .delete();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Recharge request accepted.')),
-                                );
-                              }),
+                                'Accept',
+                                const Color(0xFFD7CCC8),
+                                () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('rechargeRequests')
+                                      .doc(docId)
+                                      .delete();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Recharge request accepted.')),
+                                  );
+                                },
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildActionButton(
-                                  'Cancel', const Color(0xFFEF9A9A), () async {
-                                await FirebaseFirestore.instance
-                                    .collection('rechargeRequests')
-                                    .doc(docId)
-                                    .delete();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Recharge request cancelled.')),
-                                );
-                              }),
+                                'Cancel',
+                                const Color(0xFFEF9A9A),
+                                () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('rechargeRequests')
+                                      .doc(docId)
+                                      .delete();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Recharge request cancelled.')),
+                                  );
+                                },
+                              ),
                             ),
                           ],
                         ),
