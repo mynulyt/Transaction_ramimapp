@@ -120,7 +120,6 @@ class MoneyRequestPage extends StatelessWidget {
                                   ),
 
                                   Text('Note: ${data['description'] ?? ''}'),
-                                  Text('Status: ${data['status'] ?? ''}'),
                                 ],
                               ),
                             ),

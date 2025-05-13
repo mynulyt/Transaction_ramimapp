@@ -131,24 +131,6 @@ class UserRechargeRequestPage extends StatelessWidget {
                           children: [
                             Expanded(
                               child: _buildActionButton(
-                                'Accept',
-                                const Color(0xFFD7CCC8),
-                                () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('rechargeRequests')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Recharge request accepted.')),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildActionButton(
                                 'Cancel',
                                 const Color(0xFFEF9A9A),
                                 () async {

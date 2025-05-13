@@ -119,26 +119,6 @@ class UserRegularBuyRequestPage extends StatelessWidget {
                           children: [
                             Expanded(
                               child: _buildActionButton(
-                                'Accept',
-                                Colors.green[100]!,
-                                () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('requests')
-                                      .doc('regular_buy_requests')
-                                      .collection('items')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Offer accepted.'),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildActionButton(
                                 'Cancel',
                                 Colors.red[100]!,
                                 () async {

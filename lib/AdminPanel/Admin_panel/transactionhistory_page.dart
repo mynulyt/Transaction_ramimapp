@@ -16,34 +16,29 @@ class TransactionHistoryPage extends StatelessWidget {
         backgroundColor: Colors.blue[800],
         elevation: 0,
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('transactions')
-            .where('userId', isEqualTo: uid)
-            .orderBy('timestamp', descending: true)
-            .snapshots(),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: fetchAllTransactions(uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          final allTransactions = snapshot.data ?? [];
+
+          if (allTransactions.isEmpty) {
             return const Center(child: Text('No transaction history found.'));
           }
 
-          final transactions = snapshot.data!.docs;
-
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
-            itemCount: transactions.length,
+            itemCount: allTransactions.length,
             itemBuilder: (context, index) {
-              final tx = transactions[index];
-              final data = tx.data() as Map<String, dynamic>;
+              final data = allTransactions[index];
 
               return _buildTransactionCard(
                 context,
                 name: data['name'] ?? 'Unknown',
-                amount: data['amount'] ?? '',
+                amount: data['amount'].toString(),
                 date: data['date'] ?? '',
                 type: data['type'] ?? '',
                 isPositive: data['isPositive'] ?? true,
@@ -114,5 +109,89 @@ class TransactionHistoryPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAllTransactions(String? uid) async {
+    if (uid == null) return [];
+
+    final List<Map<String, dynamic>> transactions = [];
+
+    // moneyRequests
+    final moneySnap = await FirebaseFirestore.instance
+        .collection('moneyRequests')
+        .where('uid', isEqualTo: uid)
+        .get();
+    for (var doc in moneySnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Money Request',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': data['method'] ?? 'Money',
+        'isPositive': false,
+      });
+    }
+
+    // rechargeRequests
+    final rechargeSnap = await FirebaseFirestore.instance
+        .collection('rechargeRequests')
+        .where('uid', isEqualTo: uid)
+        .get();
+    for (var doc in rechargeSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Recharge Request',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': data['operator'] ?? 'Recharge',
+        'isPositive': false,
+      });
+    }
+
+    // regular_buy_requests
+    final offerSnap = await FirebaseFirestore.instance
+        .collection('requests')
+        .doc('regular_buy_requests')
+        .collection('items')
+        .where('userId', isEqualTo: uid)
+        .get();
+    for (var doc in offerSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Offer Buy',
+        'amount': data['price'],
+        'date': formatTimestamp(data['submittedAt']),
+        'type': data['operator'] ?? 'Offer',
+        'isPositive': false,
+      });
+    }
+
+    // transfer_requests
+    final transferSnap = await FirebaseFirestore.instance
+        .collection('transfer_requests')
+        .where('userId', isEqualTo: uid)
+        .get();
+    for (var doc in transferSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': data['name'] ?? 'Transfer',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': 'Balance Transfer',
+        'isPositive': false,
+      });
+    }
+
+    // Sort all by date descending
+    transactions.sort((a, b) =>
+        DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+
+    return transactions;
+  }
+
+  String formatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    final dt = timestamp.toDate();
+    return dt.toIso8601String(); // Or format as needed
   }
 }
