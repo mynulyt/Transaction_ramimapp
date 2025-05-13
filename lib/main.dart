@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:ramimapp/AdminPanel/Admin_panel/mailbox_page.dart';
 
 import 'package:ramimapp/button-pages/addbalancemethod_page.dart';
 import 'package:ramimapp/button-pages/adduser_page.dart';
@@ -264,6 +265,10 @@ class _MainScreenState extends State<MainScreen> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => const OfferMethodPage()));
+                  }),
+                  buildGridButton("Mail Box", Icons.mail_sharp, () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => MailboxPage()));
                   }),
                 ],
               ),
