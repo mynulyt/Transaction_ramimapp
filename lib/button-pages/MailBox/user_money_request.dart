@@ -14,9 +14,8 @@ class UserMoneyRequestPage extends StatelessWidget {
         elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('moneyRequests')
-            .snapshots(), // ✅ Correct collection name
+        stream:
+            FirebaseFirestore.instance.collection('moneyRequests').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
@@ -94,8 +93,6 @@ class UserMoneyRequestPage extends StatelessWidget {
                                   Text('Email: ${data['email'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Method: ${data['method'] ?? 'N/A'}'),
-
-                                  // 🔥 Copyable Number field
                                   Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -118,7 +115,6 @@ class UserMoneyRequestPage extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-
                                   Text('Note: ${data['description'] ?? ''}'),
                                   Text('Status: ${data['status'] ?? ''}'),
                                 ],
@@ -128,24 +124,14 @@ class UserMoneyRequestPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                         Row(
+                          children: const [
+                            // Empty spacer instead of Accept button to keep layout unchanged
+                            Expanded(child: SizedBox()),
+                            SizedBox(width: 12),
+                          ],
+                        ),
+                        Row(
                           children: [
-                            Expanded(
-                              child: _buildActionButton(
-                                'Accept',
-                                const Color(0xFFC8E6C9),
-                                () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('moneyRequests')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Money request accepted.')),
-                                  );
-                                },
-                              ),
-                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildActionButton(
@@ -178,7 +164,8 @@ class UserMoneyRequestPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(String text, Color color, VoidCallback onPressed) {
+  static Widget _buildActionButton(
+      String text, Color color, VoidCallback onPressed) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
