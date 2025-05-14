@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ramimapp/button-pages/MailBox/user_mail_box.dart';
-
 import 'package:ramimapp/button-pages/addbalancemethod_page.dart';
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
@@ -258,7 +257,8 @@ class _MainScreenState extends State<MainScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => TransactionHistoryPage()));
+                            builder: (context) =>
+                                const TransactionHistoryPage()));
                   }),
                   buildGridButton("Regular Offer", Icons.local_offer, () {
                     Navigator.push(

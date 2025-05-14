@@ -123,8 +123,8 @@ class UserMoneyRequestPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        Row(
-                          children: const [
+                        const Row(
+                          children: [
                             // Empty spacer instead of Accept button to keep layout unchanged
                             Expanded(child: SizedBox()),
                             SizedBox(width: 12),
