@@ -73,7 +73,7 @@ class _MainScreenState extends State<MainScreen> {
           user != null
               ? buildHomeScreen(user.uid)
               : const Center(child: Text('Please log in.')),
-          const Center(child: Text("History Screen")),
+          const TransactionHistoryPage(),
           const TallyKhataPage(),
         ],
       ),
@@ -258,7 +258,7 @@ class _MainScreenState extends State<MainScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const TransferMethodPage()));
+                            builder: (context) => TransactionHistoryPage()));
                   }),
                   buildGridButton("Regular Offer", Icons.local_offer, () {
                     Navigator.push(
