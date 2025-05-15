@@ -91,7 +91,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
     );
   }
 
-  Future<void> _submitTransfer(String pin) async {
+  Future<void> _submitTransfer(String enteredPin) async {
     final user = _auth.currentUser;
     if (user == null || _receiverUid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,19 +121,28 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
     }
 
     try {
-      // Get sender data
       final senderDocRef = _firestore.collection('users').doc(senderUid);
       final senderSnapshot = await senderDocRef.get();
-      final senderData = senderSnapshot.data();
 
-      if (senderData == null || senderData['pin'] != pin) {
+      if (!senderSnapshot.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sender not found')),
+        );
+        return;
+      }
+
+      final senderData = senderSnapshot.data();
+      final storedPin = senderData?['pin'];
+
+      if (storedPin == null || storedPin != enteredPin) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Incorrect PIN')),
         );
         return;
       }
 
-      double senderMain = double.tryParse(senderData['main'].toString()) ?? 0;
+      final senderMain =
+          double.tryParse(senderData?['main'].toString() ?? '0') ?? 0;
 
       if (senderMain < amount) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -142,7 +151,6 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
         return;
       }
 
-      // Get receiver data
       final receiverDocRef = _firestore.collection('users').doc(_receiverUid);
       final receiverSnapshot = await receiverDocRef.get();
       final receiverData = receiverSnapshot.data();
@@ -154,42 +162,20 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
         return;
       }
 
-      double receiverMain =
+      final receiverMain =
           double.tryParse(receiverData['main'].toString()) ?? 0;
 
-      // Perform transaction
+      // Transaction
       await _firestore.runTransaction((transaction) async {
-        // Re-fetch documents inside transaction
-        final freshSenderSnapshot = await transaction.get(senderDocRef);
-        final freshReceiverSnapshot = await transaction.get(receiverDocRef);
+        transaction.update(senderDocRef, {
+          'main': (senderMain - amount).toStringAsFixed(2),
+        });
+        transaction.update(receiverDocRef, {
+          'main': (receiverMain + amount).toStringAsFixed(2),
+        });
 
-        final freshSenderData = freshSenderSnapshot.data()!;
-        final freshReceiverData = freshReceiverSnapshot.data()!;
-
-        final senderPin = freshSenderData['pin'];
-        final senderMain =
-            double.tryParse(freshSenderData['main'].toString()) ?? 0;
-        final receiverMain =
-            double.tryParse(freshReceiverData['main'].toString()) ?? 0;
-
-        if (senderPin != pin) {
-          throw Exception('Incorrect PIN');
-        }
-
-        if (senderMain < amount) {
-          throw Exception('Insufficient balance');
-        }
-
-        // Update balances
-        final updatedSenderMain = (senderMain - amount).toStringAsFixed(2);
-        final updatedReceiverMain = (receiverMain + amount).toStringAsFixed(2);
-
-        transaction.update(senderDocRef, {'main': updatedSenderMain});
-        transaction.update(receiverDocRef, {'main': updatedReceiverMain});
-
-        // Log transaction
-        final transferDoc = _firestore.collection('transfers').doc();
-        transaction.set(transferDoc, {
+        final transferRef = _firestore.collection('transfers').doc();
+        transaction.set(transferRef, {
           'senderId': senderUid,
           'receiverId': _receiverUid,
           'method': _selectedMethod,
