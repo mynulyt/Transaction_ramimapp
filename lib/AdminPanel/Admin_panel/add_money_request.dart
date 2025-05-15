@@ -167,12 +167,16 @@ class AddMoneyRequestPage extends StatelessWidget {
 
                           // Buttons row at bottom
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: ElevatedButton.icon(
                                   icon: const Icon(Icons.check_circle_outline),
-                                  label: const Text('Confirm'),
+                                  label: const Text(
+                                    'Confirm',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 22),
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green,
                                     padding: const EdgeInsets.symmetric(
@@ -194,7 +198,11 @@ class AddMoneyRequestPage extends StatelessWidget {
                               Expanded(
                                 child: ElevatedButton.icon(
                                   icon: const Icon(Icons.cancel_outlined),
-                                  label: const Text('Cancel'),
+                                  label: const Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 22),
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,
                                     padding: const EdgeInsets.symmetric(
@@ -332,10 +340,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.white),
-          ),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: () {
@@ -345,10 +350,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
               Navigator.pop(context, _pinController.text.trim());
             }
           },
-          child: const Text(
-            'Confirm',
-            style: TextStyle(color: Colors.white),
-          ),
+          child: const Text('Confirm'),
         ),
       ],
       contentPadding: const EdgeInsets.all(20),
