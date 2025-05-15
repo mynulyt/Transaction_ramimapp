@@ -21,35 +21,204 @@ class AddMoneyRequestPage extends StatelessWidget {
           final requests = snapshot.data!.docs;
 
           return ListView.builder(
+            padding: const EdgeInsets.all(8),
             itemCount: requests.length,
             itemBuilder: (context, index) {
               final data = requests[index].data() as Map<String, dynamic>;
               final docId = requests[index].id;
+
               final userId = data['userId'] ?? '';
               final requestedAmount = data['amount'] ?? 0;
+              final userName = data['name'] ?? 'Unknown';
+              final method = data['method'] ?? 'N/A';
+              final senderNumber = data['senderNumber'] ?? 'N/A';
 
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(
-                      data['name'] != null && data['name'].isNotEmpty
-                          ? data['name'][0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(color: Colors.white),
+              return FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userId)
+                    .get(),
+                builder: (context, userSnapshot) {
+                  String accountNumber = 'Unknown';
+                  if (userSnapshot.hasData && userSnapshot.data!.exists) {
+                    final userData =
+                        userSnapshot.data!.data() as Map<String, dynamic>;
+                    accountNumber = userData['phone'] ?? 'Unknown';
+                  }
+
+                  return Card(
+                    elevation: 4,
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    backgroundColor: Colors.blue,
-                  ),
-                  title: Text(data['name'] ?? 'Unknown'),
-                  subtitle: Text('Request: ৳$requestedAmount'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.check, color: Colors.green),
-                    onPressed: () {
-                      confirmAddMoneyRequest(
-                          context, docId, userId, requestedAmount);
-                    },
-                  ),
-                ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header row with avatar and name
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundColor: Colors.blueAccent,
+                                child: Text(
+                                  userName.isNotEmpty
+                                      ? userName[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  userName,
+                                  style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Amount row
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                    text: 'Amount: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87)),
+                                TextSpan(
+                                    text: '৳$requestedAmount',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.green,
+                                        fontSize: 16)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Method row
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                    text: 'Method: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87)),
+                                TextSpan(
+                                    text: method,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.black87)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Sender Number row
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                    text: 'Sender Number: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87)),
+                                TextSpan(
+                                    text: senderNumber,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.black87)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Account Number row (user phone)
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                    text: 'User Account Number: ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87)),
+                                TextSpan(
+                                    text: accountNumber,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.normal,
+                                        color: Colors.black87)),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Buttons row at bottom
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.check_circle_outline),
+                                  label: const Text('Confirm'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                  ),
+                                  onPressed: () {
+                                    _handleRequestAction(context, docId, userId,
+                                        requestedAmount, true);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.cancel_outlined),
+                                  label: const Text('Cancel'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                  ),
+                                  onPressed: () {
+                                    _handleRequestAction(context, docId, userId,
+                                        requestedAmount, false);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
             },
           );
@@ -58,12 +227,8 @@ class AddMoneyRequestPage extends StatelessWidget {
     );
   }
 
-  Future<void> confirmAddMoneyRequest(
-    BuildContext context,
-    String docId,
-    String userId,
-    int requestedAmount,
-  ) async {
+  Future<void> _handleRequestAction(BuildContext context, String docId,
+      String userId, dynamic requestedAmount, bool isConfirm) async {
     final pin = await showDialog<String>(
       context: context,
       builder: (context) => PinVerificationDialog(),
@@ -85,23 +250,44 @@ class AddMoneyRequestPage extends StatelessWidget {
       }
 
       final userPin = userDoc['pin'] ?? '';
-      final currentBalance = userDoc['mainBalance'] ?? 0;
+      final mainBalanceStr = userDoc['main'] ?? '0';
 
       if (pin == userPin) {
-        // Update user balance
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .update({'mainBalance': currentBalance + requestedAmount});
+        if (isConfirm) {
+          double currentBalance = double.tryParse(mainBalanceStr) ?? 0.0;
+          double amountToAdd;
 
-        // Delete the request document
+          if (requestedAmount is String) {
+            amountToAdd = double.tryParse(requestedAmount) ?? 0.0;
+          } else if (requestedAmount is int) {
+            amountToAdd = requestedAmount.toDouble();
+          } else if (requestedAmount is double) {
+            amountToAdd = requestedAmount;
+          } else {
+            amountToAdd = 0.0;
+          }
+
+          double updatedBalance = currentBalance + amountToAdd;
+
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .update({
+            'main': updatedBalance.toStringAsFixed(2),
+          });
+        }
+
         await FirebaseFirestore.instance
             .collection('addMoneyRequests')
             .doc(docId)
             .delete();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Request approved and balance updated")),
+          SnackBar(
+            content: Text(isConfirm
+                ? "Request approved and balance updated"
+                : "Request cancelled"),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -129,18 +315,27 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Enter PIN to Confirm'),
-      content: TextField(
-        controller: _pinController,
-        obscureText: true,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          hintText: 'PIN',
-        ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _pinController,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'PIN',
+              errorText: _showError ? 'PIN is required' : null,
+            ),
+          ),
+        ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
         ElevatedButton(
           onPressed: () {
@@ -150,14 +345,15 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
               Navigator.pop(context, _pinController.text.trim());
             }
           },
-          child: const Text('Confirm'),
+          child: const Text(
+            'Confirm',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ],
       contentPadding: const EdgeInsets.all(20),
       insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       actionsPadding: const EdgeInsets.symmetric(horizontal: 10),
-      // Show error message inside the dialog if needed
-      semanticLabel: _showError ? 'PIN is required' : null,
     );
   }
 }
