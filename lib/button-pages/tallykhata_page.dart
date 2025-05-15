@@ -29,27 +29,44 @@ class TallyKhataScreen extends StatelessWidget {
       iconWidget = const Icon(Icons.help_outline, color: Colors.red);
     }
 
-    return Container(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-        title: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            iconWidget,
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(title),
-              ],
-            ),
-          ],
-        ),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+      title: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          iconWidget,
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(title),
+            ],
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildStatsGrid(Map<String, dynamic> stats) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: 2.5,
+      children: [
+        _buildStatItem("images/received.png", 'Total Received',
+            '৳${stats['totalReceived'] ?? '0'}'),
+        _buildStatItem(Icons.card_travel_outlined, 'Today\'s Sales',
+            '৳${stats['todaysSales'] ?? '0'}'),
+        _buildStatItem(
+            "images/iwg.png", 'I will give', '৳${stats['iWillGive'] ?? '0'}'),
+        _buildStatItem(
+            Icons.money, 'Total Cash', '৳${stats['totalCash'] ?? '0'}'),
+      ],
     );
   }
 
@@ -72,150 +89,110 @@ class TallyKhataScreen extends StatelessWidget {
           final userData = userSnapshot.data!.data() as Map<String, dynamic>;
           final role = userData['role'];
 
+          Stream stream;
+
+          if (role == 'admin') {
+            stream = FirebaseFirestore.instance
+                .collection('accountStats')
+                .snapshots();
+          } else {
+            stream = FirebaseFirestore.instance
+                .collection("accountStats")
+                .doc(uid)
+                .snapshots();
+          }
+
           return StreamBuilder(
-            stream: (role == 'admin')
-                ? FirebaseFirestore.instance
-                    .collection('accountStats')
-                    .snapshots() // For admin, fetch all user data
-                : FirebaseFirestore.instance
-                    .collection("accountStats")
-                    .doc(uid)
-                    .snapshots(), // For user, fetch their own data
+            stream: stream,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (!snapshot.hasData || snapshot.data == null) {
+              if (!snapshot.hasData) {
                 return const Center(child: Text('No data found.'));
               }
 
               if (role == 'admin' && snapshot.data is QuerySnapshot) {
-                final data = (snapshot.data as QuerySnapshot).docs;
+                final docs = (snapshot.data as QuerySnapshot).docs;
+
                 return ListView.builder(
-                  itemCount: data.length,
+                  itemCount: docs.length,
                   itemBuilder: (context, index) {
                     final userStats =
-                        data[index].data() as Map<String, dynamic>;
+                        docs[index].data() as Map<String, dynamic>;
                     final balance = userStats['balance']?.toString() ?? '0.00';
-                    final received =
-                        userStats['totalReceived']?.toString() ?? '0';
-                    final sales = userStats['todaysSales']?.toString() ?? '0';
-                    final willGive = userStats['iWillGive']?.toString() ?? '0';
-                    final cash = userStats['totalCash']?.toString() ?? '0';
 
-                    return SingleChildScrollView(
+                    return Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            color: Colors.white,
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    const Text(
-                                      'Account Balance',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      "৳$balance",
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
+                          Row(
+                            children: [
+                              const Text(
+                                'Account Balance',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                const Divider(color: Colors.indigo),
-                                GridView.count(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 2.5,
-                                  children: [
-                                    _buildStatItem("images/received.png",
-                                        'Total Received', '৳$received'),
-                                    _buildStatItem(Icons.card_travel_outlined,
-                                        'Today\'s Sales', '৳$sales'),
-                                    _buildStatItem("images/iwg.png",
-                                        'I will give', '৳$willGive'),
-                                    _buildStatItem(
-                                        Icons.money, 'Total Cash', '৳$cash'),
-                                  ],
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                "৳$balance",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+                          const Divider(color: Colors.indigo),
+                          _buildStatsGrid(userStats),
                         ],
                       ),
                     );
                   },
                 );
               } else if (role == 'user' && snapshot.data is DocumentSnapshot) {
-                final data = snapshot.data as DocumentSnapshot;
-                final userStats = data.data() as Map<String, dynamic>;
-
+                final userStats = (snapshot.data as DocumentSnapshot).data()
+                    as Map<String, dynamic>;
                 final balance = userStats['balance']?.toString() ?? '0.00';
-                final received = userStats['totalReceived']?.toString() ?? '0';
-                final sales = userStats['todaysSales']?.toString() ?? '0';
-                final willGive = userStats['iWillGive']?.toString() ?? '0';
-                final cash = userStats['totalCash']?.toString() ?? '0';
 
                 return SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        color: Colors.white,
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
+                  child: Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                const Text(
-                                  'Account Balance',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  "৳$balance",
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                            const Text(
+                              'Account Balance',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            const Divider(color: Colors.indigo),
-                            GridView.count(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              crossAxisCount: 2,
-                              childAspectRatio: 2.5,
-                              children: [
-                                _buildStatItem("images/received.png",
-                                    'Total Received', '৳$received'),
-                                _buildStatItem(Icons.card_travel_outlined,
-                                    'Today\'s Sales', '৳$sales'),
-                                _buildStatItem("images/iwg.png", 'I will give',
-                                    '৳$willGive'),
-                                _buildStatItem(
-                                    Icons.money, 'Total Cash', '৳$cash'),
-                              ],
+                            const SizedBox(width: 6),
+                            Text(
+                              "৳$balance",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        const Divider(color: Colors.indigo),
+                        _buildStatsGrid(userStats),
+                      ],
+                    ),
                   ),
                 );
               } else {
