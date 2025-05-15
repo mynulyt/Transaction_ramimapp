@@ -42,6 +42,7 @@ class TransactionHistoryPage extends StatelessWidget {
                 amount: data['amount'].toString(),
                 date: data['date'] ?? '',
                 type: data['type'] ?? '',
+                tmi: data['tmi'] ?? '',
                 isPositive: data['isPositive'] ?? true,
               );
             },
@@ -56,6 +57,7 @@ class TransactionHistoryPage extends StatelessWidget {
     required String amount,
     required String date,
     required String type,
+    required String tmi,
     required bool isPositive,
   }) {
     return Card(
@@ -76,7 +78,7 @@ class TransactionHistoryPage extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isPositive ? Icons.arrow_downward : Icons.arrow_upward,
+                _getTransactionIcon(name),
                 color: isPositive ? Colors.green : Colors.red,
               ),
             ),
@@ -97,6 +99,14 @@ class TransactionHistoryPage extends StatelessWidget {
                     type,
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
+                  if (tmi.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      tmi,
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.blueGrey),
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Text(
                     date,
@@ -119,11 +129,31 @@ class TransactionHistoryPage extends StatelessWidget {
     );
   }
 
+  IconData _getTransactionIcon(String name) {
+    switch (name) {
+      case 'Money Request':
+        return Icons.request_page;
+      case 'Recharge Request':
+        return Icons.phone_android;
+      case 'Offer Buy':
+        return Icons.local_offer;
+      case 'Transfer':
+        return Icons.send;
+      case 'Admin Added':
+        return Icons.add_circle;
+      case 'Income':
+        return Icons.download;
+      default:
+        return Icons.swap_horiz;
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchAllTransactions(String? uid) async {
     if (uid == null) return [];
 
     final List<Map<String, dynamic>> transactions = [];
 
+    // Money Request
     final moneySnap = await FirebaseFirestore.instance
         .collection('moneyRequests')
         .where('uid', isEqualTo: uid)
@@ -135,10 +165,12 @@ class TransactionHistoryPage extends StatelessWidget {
         'amount': data['amount'],
         'date': formatTimestamp(data['timestamp']),
         'type': data['method'] ?? 'Money',
+        'tmi': data['note'] ?? '', // <-- Add TMI here if exists
         'isPositive': false,
       });
     }
 
+    // Recharge Request
     final rechargeSnap = await FirebaseFirestore.instance
         .collection('rechargeRequests')
         .where('uid', isEqualTo: uid)
@@ -150,10 +182,12 @@ class TransactionHistoryPage extends StatelessWidget {
         'amount': data['amount'],
         'date': formatTimestamp(data['timestamp']),
         'type': data['operator'] ?? 'Recharge',
+        'tmi': data['note'] ?? '', // <-- Add TMI here if exists
         'isPositive': false,
       });
     }
 
+    // Offer Buy
     final offerSnap = await FirebaseFirestore.instance
         .collection('requests')
         .doc('regular_buy_requests')
@@ -167,10 +201,12 @@ class TransactionHistoryPage extends StatelessWidget {
         'amount': data['price'],
         'date': formatTimestamp(data['submittedAt']),
         'type': data['operator'] ?? 'Offer',
+        'tmi': data['details'] ?? '', // <-- Add TMI here if exists
         'isPositive': false,
       });
     }
 
+    // Transfer
     final transferSnap = await FirebaseFirestore.instance
         .collection('transfer_requests')
         .where('userId', isEqualTo: uid)
@@ -178,14 +214,50 @@ class TransactionHistoryPage extends StatelessWidget {
     for (var doc in transferSnap.docs) {
       final data = doc.data();
       transactions.add({
-        'name': data['name'] ?? 'Transfer',
+        'name': 'Transfer',
         'amount': data['amount'],
         'date': formatTimestamp(data['timestamp']),
         'type': 'Balance Transfer',
+        'tmi': data['note'] ?? '',
         'isPositive': false,
       });
     }
 
+    // Admin Added
+    final adminSnap = await FirebaseFirestore.instance
+        .collection('admin_added_balance')
+        .where('userId', isEqualTo: uid)
+        .get();
+    for (var doc in adminSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Admin Added',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': data['note'] ?? 'Added by Admin',
+        'tmi': '',
+        'isPositive': true,
+      });
+    }
+
+    // Income / Received
+    final receivedSnap = await FirebaseFirestore.instance
+        .collection('received_money')
+        .where('userId', isEqualTo: uid)
+        .get();
+    for (var doc in receivedSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Income',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': data['source'] ?? 'Received',
+        'tmi': '',
+        'isPositive': true,
+      });
+    }
+
+    // Sort all by date (latest first)
     transactions.sort((a, b) =>
         DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
 
@@ -195,6 +267,7 @@ class TransactionHistoryPage extends StatelessWidget {
   String formatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return '';
     final dt = timestamp.toDate();
-    return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
+    return DateFormat('yyyy-MM-ddTHH:mm:ss')
+        .format(dt); // Parseable for sorting
   }
 }
