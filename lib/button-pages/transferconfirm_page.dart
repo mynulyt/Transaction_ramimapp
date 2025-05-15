@@ -10,7 +10,8 @@ class TransferConfirmPage extends StatefulWidget {
 }
 
 class _TransferConfirmPageState extends State<TransferConfirmPage> {
-  final TextEditingController _receiverIdController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
@@ -18,6 +19,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String? _selectedMethod;
+  String? _receiverUid;
 
   @override
   void didChangeDependencies() {
@@ -28,21 +30,82 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
     }
   }
 
-  Future<void> _submitTransfer() async {
-    final user = _auth.currentUser;
-    if (user == null) {
+  Future<void> _fetchUserByPhone(String phone) async {
+    final querySnapshot = await _firestore
+        .collection('users')
+        .where('phone', isEqualTo: phone)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      final userData = querySnapshot.docs.first.data();
+      final username = userData['name'] ?? '';
+      final uid = querySnapshot.docs.first.id;
+
+      setState(() {
+        _usernameController.text = username;
+        _receiverUid = uid;
+      });
+    } else {
+      setState(() {
+        _usernameController.clear();
+        _receiverUid = null;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not logged in')),
+        const SnackBar(content: Text('User not found with this phone number')),
+      );
+    }
+  }
+
+  void _showPinDialog() {
+    final TextEditingController pinController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Enter your PIN"),
+        content: TextField(
+          controller: pinController,
+          obscureText: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'PIN',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _submitTransfer(pinController.text);
+            },
+            child: const Text("Confirm"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitTransfer(String pin) async {
+    final user = _auth.currentUser;
+    if (user == null || _receiverUid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('User not logged in or receiver not found')),
       );
       return;
     }
 
     final senderUid = user.uid;
-    final receiverId = _receiverIdController.text.trim();
     final amountStr = _amountController.text.trim();
     final description = _descriptionController.text.trim();
 
-    if (receiverId.isEmpty || amountStr.isEmpty || _selectedMethod == null) {
+    if (amountStr.isEmpty || _selectedMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
       );
@@ -52,45 +115,94 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
     final amount = double.tryParse(amountStr);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid amount')),
+        const SnackBar(content: Text('Enter a valid amount')),
       );
       return;
     }
 
     try {
-      // Check if receiver exists (optional, assuming receiverId is uid or phone)
-      final receiverDoc =
-          await _firestore.collection('users').doc(receiverId).get();
-      if (!receiverDoc.exists) {
+      // Get sender data
+      final senderDocRef = _firestore.collection('users').doc(senderUid);
+      final senderSnapshot = await senderDocRef.get();
+      final senderData = senderSnapshot.data();
+
+      if (senderData == null || senderData['pin'] != pin) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Incorrect PIN')),
+        );
+        return;
+      }
+
+      double senderMain = double.tryParse(senderData['main'].toString()) ?? 0;
+
+      if (senderMain < amount) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Insufficient balance')),
+        );
+        return;
+      }
+
+      // Get receiver data
+      final receiverDocRef = _firestore.collection('users').doc(_receiverUid);
+      final receiverSnapshot = await receiverDocRef.get();
+      final receiverData = receiverSnapshot.data();
+
+      if (receiverData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Receiver not found')),
         );
         return;
       }
 
-      // Add transfer request to Firestore
-      await _firestore.collection('transfers').add({
-        'senderId': senderUid,
-        'receiverId': receiverId,
-        'method': _selectedMethod,
-        'amount': amount,
-        'description': description,
-        'status': 'pending',
-        'timestamp': FieldValue.serverTimestamp(),
+      double receiverMain =
+          double.tryParse(receiverData['main'].toString()) ?? 0;
+
+      // Perform transaction
+      await _firestore.runTransaction((transaction) async {
+        transaction.update(
+            senderDocRef, {'main': (senderMain - amount).toStringAsFixed(2)});
+        transaction.update(receiverDocRef,
+            {'main': (receiverMain + amount).toStringAsFixed(2)});
+
+        // Optionally log the transfer
+        transaction.set(_firestore.collection('transfers').doc(), {
+          'senderId': senderUid,
+          'receiverId': _receiverUid,
+          'method': _selectedMethod,
+          'amount': amount,
+          'description': description,
+          'status': 'completed',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transfer request submitted')),
+        const SnackBar(content: Text('Transfer successful')),
       );
 
-      _receiverIdController.clear();
+      _phoneController.clear();
+      _usernameController.clear();
       _amountController.clear();
       _descriptionController.clear();
+      _receiverUid = null;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
     }
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label,
+      {bool readOnly = false, void Function(String)? onChanged}) {
+    return TextField(
+      controller: controller,
+      readOnly: readOnly,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+    );
   }
 
   @override
@@ -111,35 +223,49 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             const SizedBox(height: 20),
-            _buildTextField(_receiverIdController, 'Receiver User ID'),
+            _buildTextField(
+              _phoneController,
+              'Receiver Phone Number',
+              onChanged: (value) {
+                if (value.length >= 11) {
+                  _fetchUserByPhone(value);
+                } else {
+                  setState(() {
+                    _usernameController.clear();
+                    _receiverUid = null;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            _buildTextField(_usernameController, 'User Name', readOnly: true),
             const SizedBox(height: 10),
             _buildTextField(_amountController, 'Amount'),
             const SizedBox(height: 10),
             _buildTextField(_descriptionController, 'Description (optional)'),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _submitTransfer,
+              onPressed: () {
+                if (_receiverUid != null) {
+                  _showPinDialog();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Valid receiver not selected')),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green.shade700,
                 minimumSize: const Size.fromHeight(50),
               ),
               child: const Text(
                 'Submit Request',
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
       ),
     );
   }

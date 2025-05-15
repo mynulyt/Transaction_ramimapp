@@ -10,7 +10,7 @@ import 'package:ramimapp/button-pages/offermethod_page.dart';
 import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
-import 'package:ramimapp/button-pages/transfermethod_page.dart';
+import 'package:ramimapp/button-pages/transferconfirm_page.dart';
 
 import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/widgets/drawer.dart';
@@ -259,7 +259,7 @@ class _MainScreenState extends State<MainScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const TransferMethodPage()));
+                            builder: (context) => const TransferConfirmPage()));
                   }),
                   buildGridButton("Regular Offer", Icons.local_offer, () {
                     Navigator.push(
