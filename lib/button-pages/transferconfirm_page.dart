@@ -10,74 +10,123 @@ class TransferConfirmPage extends StatefulWidget {
 }
 
 class _TransferConfirmPageState extends State<TransferConfirmPage> {
-  final TextEditingController _acNumberController = TextEditingController();
+  final TextEditingController _receiverIdController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _operatorController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void _submitRechargeRequest() async {
+  String? _selectedMethod;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null && args is String) {
+      _selectedMethod = args;
+    }
+  }
+
+  Future<void> _submitTransfer() async {
     final user = _auth.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not logged in')),
+      );
+      return;
+    }
 
-    final uid = user.uid;
-    final userDoc = await _firestore.collection('users').doc(uid).get();
-    final userName = userDoc['name'] ?? 'Unknown';
-
-    final acNumber = _acNumberController.text.trim();
-    final amount = _amountController.text.trim();
-    final operator = _operatorController.text.trim();
+    final senderUid = user.uid;
+    final receiverId = _receiverIdController.text.trim();
+    final amountStr = _amountController.text.trim();
     final description = _descriptionController.text.trim();
 
-    if (acNumber.isEmpty || amount.isEmpty || operator.isEmpty) {
+    if (receiverId.isEmpty || amountStr.isEmpty || _selectedMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
       );
       return;
     }
 
-    await _firestore.collection('rechargeRequests').add({
-      'userId': uid,
-      'userName': userName,
-      'acNumber': acNumber,
-      'amount': amount,
-      'operator': operator,
-      'description': description,
-      'status': 'pending',
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+    final amount = double.tryParse(amountStr);
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid amount')),
+      );
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Transfer request submitted')),
-    );
+    try {
+      // Check if receiver exists (optional, assuming receiverId is uid or phone)
+      final receiverDoc =
+          await _firestore.collection('users').doc(receiverId).get();
+      if (!receiverDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Receiver not found')),
+        );
+        return;
+      }
 
-    _acNumberController.clear();
-    _amountController.clear();
-    _operatorController.clear();
-    _descriptionController.clear();
+      // Add transfer request to Firestore
+      await _firestore.collection('transfers').add({
+        'senderId': senderUid,
+        'receiverId': receiverId,
+        'method': _selectedMethod,
+        'amount': amount,
+        'description': description,
+        'status': 'pending',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transfer request submitted')),
+      );
+
+      _receiverIdController.clear();
+      _amountController.clear();
+      _descriptionController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Transfer Confirmation')),
+      appBar: AppBar(
+        title: const Text('Transfer Confirmation'),
+        backgroundColor: Colors.green.shade700,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildTextField(_acNumberController, 'AC Number'),
+            if (_selectedMethod != null)
+              Text(
+                'Method: $_selectedMethod',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            const SizedBox(height: 20),
+            _buildTextField(_receiverIdController, 'Receiver User ID'),
             const SizedBox(height: 10),
             _buildTextField(_amountController, 'Amount'),
-            const SizedBox(height: 10),
-            _buildTextField(_operatorController, 'Operator'),
             const SizedBox(height: 10),
             _buildTextField(_descriptionController, 'Description (optional)'),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _submitRechargeRequest,
-              child: const Text('Submit Request'),
+              onPressed: _submitTransfer,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade700,
+                minimumSize: const Size.fromHeight(50),
+              ),
+              child: const Text(
+                'Submit Request',
+                style: TextStyle(fontSize: 16),
+              ),
             ),
           ],
         ),

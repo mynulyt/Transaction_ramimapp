@@ -48,6 +48,7 @@ class TransferMethodPage extends StatelessWidget {
                 method['image']!,
                 width: 40,
                 height: 40,
+                fit: BoxFit.contain,
               ),
               title: Text(
                 method['name']!,
@@ -58,10 +59,10 @@ class TransferMethodPage extends StatelessWidget {
               ),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () {
-                // Navigate to the next screen with selected method
+                // Navigate to TransferConfirmPage and send method name
                 Navigator.pushNamed(
                   context,
-                  '/transferDetails',
+                  '/transferConfirm',
                   arguments: method['name'],
                 );
               },
