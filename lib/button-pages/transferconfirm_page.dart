@@ -18,17 +18,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  String? _selectedMethod;
   String? _receiverUid;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args != null && args is String) {
-      _selectedMethod = args;
-    }
-  }
 
   Future<void> _fetchUserByPhone(String phone) async {
     final querySnapshot = await _firestore
@@ -105,7 +95,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
     final amountStr = _amountController.text.trim();
     final description = _descriptionController.text.trim();
 
-    if (amountStr.isEmpty || _selectedMethod == null) {
+    if (amountStr.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
       );
@@ -178,7 +168,6 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
         transaction.set(transferRef, {
           'senderId': senderUid,
           'receiverId': _receiverUid,
-          'method': _selectedMethod,
           'amount': amount,
           'description': description,
           'status': 'completed',
@@ -226,13 +215,6 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            if (_selectedMethod != null)
-              Text(
-                'Method: $_selectedMethod',
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            const SizedBox(height: 20),
             _buildTextField(
               _phoneController,
               'Receiver Phone Number',
