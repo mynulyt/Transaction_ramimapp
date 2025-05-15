@@ -50,6 +50,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
             "pin": _pinController.text.trim(),
             "uid": FirebaseAuth.instance.currentUser!.uid,
             "createdAt": Timestamp.now(),
+
+            // Newly added fields
+            "main": "0.00",
+            "advance": "0.00",
+            "due": "0.00",
+            "lastLogin":
+                "${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year} ${TimeOfDay.now().format(context)}",
+            "status": "Active",
           });
 
           ScaffoldMessenger.of(context).showSnackBar(

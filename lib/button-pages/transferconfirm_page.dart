@@ -159,13 +159,37 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
 
       // Perform transaction
       await _firestore.runTransaction((transaction) async {
-        transaction.update(
-            senderDocRef, {'main': (senderMain - amount).toStringAsFixed(2)});
-        transaction.update(receiverDocRef,
-            {'main': (receiverMain + amount).toStringAsFixed(2)});
+        // Re-fetch documents inside transaction
+        final freshSenderSnapshot = await transaction.get(senderDocRef);
+        final freshReceiverSnapshot = await transaction.get(receiverDocRef);
 
-        // Optionally log the transfer
-        transaction.set(_firestore.collection('transfers').doc(), {
+        final freshSenderData = freshSenderSnapshot.data()!;
+        final freshReceiverData = freshReceiverSnapshot.data()!;
+
+        final senderPin = freshSenderData['pin'];
+        final senderMain =
+            double.tryParse(freshSenderData['main'].toString()) ?? 0;
+        final receiverMain =
+            double.tryParse(freshReceiverData['main'].toString()) ?? 0;
+
+        if (senderPin != pin) {
+          throw Exception('Incorrect PIN');
+        }
+
+        if (senderMain < amount) {
+          throw Exception('Insufficient balance');
+        }
+
+        // Update balances
+        final updatedSenderMain = (senderMain - amount).toStringAsFixed(2);
+        final updatedReceiverMain = (receiverMain + amount).toStringAsFixed(2);
+
+        transaction.update(senderDocRef, {'main': updatedSenderMain});
+        transaction.update(receiverDocRef, {'main': updatedReceiverMain});
+
+        // Log transaction
+        final transferDoc = _firestore.collection('transfers').doc();
+        transaction.set(transferDoc, {
           'senderId': senderUid,
           'receiverId': _receiverUid,
           'method': _selectedMethod,
