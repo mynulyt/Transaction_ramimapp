@@ -8,19 +8,19 @@ class TransferMethodPage extends StatelessWidget {
     final List<Map<String, String>> transferMethods = [
       {
         'name': 'bKash',
-        'image': 'assets/images/bkash.png',
+        'image': 'images/bkash_logo.png',
       },
       {
         'name': 'Nagad',
-        'image': 'assets/images/nagad.png',
+        'image': 'images/nagad.jpg',
       },
       {
         'name': 'Rocket',
-        'image': 'assets/images/rocket.png',
+        'image': 'images/rocket.png',
       },
       {
         'name': 'Upay',
-        'image': 'assets/images/upay.png',
+        'image': 'images/upay.png',
       },
     ];
 
