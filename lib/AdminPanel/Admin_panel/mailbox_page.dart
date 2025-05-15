@@ -1,5 +1,6 @@
 // lib/admin_panel/mailbox_page.dart
 import 'package:flutter/material.dart';
+import 'package:ramimapp/AdminPanel/Admin_panel/add_money_request.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/rechagerequest_page.dart';
 import 'money_request_page.dart';
 import 'offer_request_page.dart';
@@ -28,6 +29,9 @@ class MailboxPage extends StatelessWidget {
             const SizedBox(height: 12),
             _buildMailboxButton(context, 'Offer Request',
                 const Color(0xFFE0E0E0), const RegularBuyRequestPage()),
+            const SizedBox(height: 12),
+            _buildMailboxButton(context, 'Add Money Request',
+                const Color(0xFFD7CCC8), const AddMoneyRequestPage()),
           ],
         ),
       ),

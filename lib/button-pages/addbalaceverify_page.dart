@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddBalanceVerifyPage extends StatefulWidget {
   final String method; // e.g., "bKash", "Nagad", etc.
@@ -46,13 +48,39 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
   String getReceiverNumber() {
     switch (widget.method.toLowerCase()) {
       case 'nagad':
-        return '01888888888';
+        return '01883834205';
       case 'rocket':
-        return '01777777777';
+        return '01883834205';
       case 'upay':
-        return '01666666666';
+        return '01883834205';
       default:
-        return '01887225454';
+        return '01883834205';
+    }
+  }
+
+  Future<void> submitRequest() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      final userName = userDoc.data()?['name'] ?? 'Unknown';
+      final userAccountNumber = userDoc.data()?['accountNumber'] ?? 'N/A';
+
+      await FirebaseFirestore.instance.collection('add_balance_requests').add({
+        'userId': user.uid,
+        'userName': userName,
+        'userAccountNumber': userAccountNumber,
+        'method': widget.method,
+        'amount': widget.amount,
+        'transactionId': _trxIdController.text.trim(),
+        'senderNumber': _senderNumberController.text.trim(),
+        'timestamp': Timestamp.now(),
+        'status': 'pending', // You can use this to manage status
+      });
     }
   }
 
@@ -64,7 +92,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              /// Header with back and logo
+              /// Header
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: Row(
@@ -79,7 +107,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
                 ),
               ),
 
-              /// Info card
+              /// Info Card
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 padding: const EdgeInsets.all(10),
@@ -184,9 +212,9 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
                           ),
                         ),
                         InkWell(
-                          onTap: () => _launchPhoneDialer("01795248887"),
+                          onTap: () => _launchPhoneDialer("01872597339"),
                           child: const Text(
-                            "01795248887",
+                            "01872597339",
                             style: TextStyle(
                               color: Colors.yellow,
                               fontWeight: FontWeight.bold,
@@ -202,29 +230,26 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
 
               const SizedBox(height: 25),
 
-              /// Verify Button
+              /// Submit Button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_trxIdController.text.trim().isEmpty ||
                         _senderNumberController.text.trim().isEmpty) {
                       setState(() => _showError = true);
                     } else {
                       setState(() => _showError = false);
 
-                      /// ✅ Handle verification logic
-                      print("Method: ${widget.method}");
-                      print("Amount: ${widget.amount}");
-                      print("Transaction ID: ${_trxIdController.text}");
-                      print("Sender Number: ${_senderNumberController.text}");
+                      await submitRequest();
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text("Submitted for verification")),
+                          content: Text("Request submitted for verification."),
+                        ),
                       );
 
-                      // TODO: Save to database or call API
+                      Navigator.pop(context); // Optionally go back
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -236,7 +261,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
                     ),
                   ),
                   child: const Text(
-                    'VERIFY',
+                    'Submit',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
