@@ -32,19 +32,6 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
     }
   }
 
-  String getLogoPath() {
-    switch (widget.method.toLowerCase()) {
-      case 'nagad':
-        return 'images/nagad_logo.png';
-      case 'rocket':
-        return 'images/rocket_logo.png';
-      case 'upay':
-        return 'images/upay_logo.png';
-      default:
-        return 'images/bkash_logo.png';
-    }
-  }
-
   String getReceiverNumber() {
     switch (widget.method.toLowerCase()) {
       case 'nagad':
@@ -68,18 +55,17 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
           .get();
 
       final userName = userDoc.data()?['name'] ?? 'Unknown';
-      final userAccountNumber = userDoc.data()?['accountNumber'] ?? 'N/A';
 
-      await FirebaseFirestore.instance.collection('add_balance_requests').add({
+      // Save request in 'addMoneyRequests' collection (note collection name to match admin page)
+      await FirebaseFirestore.instance.collection('addMoneyRequests').add({
         'userId': user.uid,
-        'userName': userName,
-        'userAccountNumber': userAccountNumber,
+        'name': userName,
         'method': widget.method,
-        'amount': widget.amount,
+        'amount': int.tryParse(widget.amount) ?? 0,
         'transactionId': _trxIdController.text.trim(),
         'senderNumber': _senderNumberController.text.trim(),
         'timestamp': Timestamp.now(),
-        'status': 'pending', // You can use this to manage status
+        'status': 'pending',
       });
     }
   }
@@ -92,7 +78,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              /// Header
+              // Header
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: Row(
@@ -107,7 +93,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
                 ),
               ),
 
-              /// Info Card
+              // Info Card
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 padding: const EdgeInsets.all(10),
@@ -160,7 +146,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
 
               const SizedBox(height: 20),
 
-              /// Form
+              // Form
               Form(
                 key: _formKey,
                 child: Column(
@@ -183,7 +169,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
 
               const SizedBox(height: 20),
 
-              /// Instructions
+              // Instructions
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 35.0),
                 child: Column(
@@ -230,7 +216,7 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
 
               const SizedBox(height: 25),
 
-              /// Submit Button
+              // Submit Button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: ElevatedButton(

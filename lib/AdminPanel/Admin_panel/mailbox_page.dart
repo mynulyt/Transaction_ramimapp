@@ -31,7 +31,7 @@ class MailboxPage extends StatelessWidget {
                 const Color(0xFFE0E0E0), const RegularBuyRequestPage()),
             const SizedBox(height: 12),
             _buildMailboxButton(context, 'Add Money Request',
-                const Color(0xFFD7CCC8), const AddMoneyRequestPage()),
+                const Color(0xFFD7CCC8), AddMoneyRequestPage()),
           ],
         ),
       ),
