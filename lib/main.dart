@@ -111,12 +111,6 @@ class _MainScreenState extends State<MainScreen> {
         final String name = data['name'] ?? 'User Name';
         final String phone = data['phone'] ?? 'Unknown';
 
-        // Logic: if main balance is 0, add due balance to it
-        double effectiveBalance = balance;
-        if (balance == 0.0) {
-          effectiveBalance += due;
-        }
-
         return Column(
           children: [
             Container(
@@ -182,7 +176,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       child: Text(
                         showBalance
-                            ? "৳${effectiveBalance.toStringAsFixed(2)}"
+                            ? "৳${balance.toStringAsFixed(2)}"
                             : "Tap to\nShow Balance",
                         textAlign: TextAlign.center,
                         style: const TextStyle(
