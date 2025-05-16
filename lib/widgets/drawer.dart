@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
-import 'package:ramimapp/button-pages/sendmoney_page.dart';
+import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/main.dart';
 
@@ -80,8 +80,7 @@ Widget buildDrawer(BuildContext context) {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const SendMoneyPage()),
+                  MaterialPageRoute(builder: (context) => const RechargePage()),
                 );
               },
             ),
@@ -103,7 +102,42 @@ Widget buildDrawer(BuildContext context) {
             ListTile(
               leading: const Icon(Icons.lock_open),
               title: const Text('Change Password'),
-              onTap: () => print("Change Password clicked"),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    final TextEditingController passwordController =
+                        TextEditingController();
+                    return AlertDialog(
+                      title: const Text('Change Password'),
+                      content: TextField(
+                        controller: passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'New Password',
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            String result = await AuthService()
+                                .changePassword(passwordController.text.trim());
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(result)),
+                            );
+                          },
+                          child: const Text('Change'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.logout),

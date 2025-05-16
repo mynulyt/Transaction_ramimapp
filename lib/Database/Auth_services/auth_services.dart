@@ -32,4 +32,16 @@ class AuthService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
+  // Change Password
+  Future<String> changePassword(String newPassword) async {
+    try {
+      await _auth.currentUser?.updatePassword(newPassword);
+      return "Password updated successfully";
+    } on FirebaseAuthException catch (e) {
+      return e.message ?? "An error occurred";
+    } catch (e) {
+      return "Something went wrong";
+    }
+  }
 }

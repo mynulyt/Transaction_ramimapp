@@ -90,7 +90,7 @@ class RechargeRequestPage extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('Name: ${data['name'] ?? 'N/A'}'),
+                                  Text('Name: ${data['userName'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Email: ${data['email'] ?? 'N/A'}'),
                                   Row(
@@ -130,14 +130,12 @@ class RechargeRequestPage extends StatelessWidget {
                                 const Color(0xFFD7CCC8),
                                 () async {
                                   try {
-                                    // 1) Parse amount:
                                     final requestedAmount = double.tryParse(
                                             data['amount']?.toString() ??
                                                 '0') ??
                                         0.0;
                                     final uid = data['uid'] as String;
 
-                                    // 2) Fetch user doc:
                                     final userDoc = await FirebaseFirestore
                                         .instance
                                         .collection('users')
@@ -153,7 +151,6 @@ class RechargeRequestPage extends StatelessWidget {
                                     }
 
                                     final userData = userDoc.data()!;
-                                    // 3) Parse current balance safely:
                                     final currentBalance = double.tryParse(
                                             userData['main']?.toString() ??
                                                 '0') ??
@@ -170,7 +167,6 @@ class RechargeRequestPage extends StatelessWidget {
                                     final newBalance =
                                         currentBalance - requestedAmount;
 
-                                    // 4) Update user balance:
                                     await FirebaseFirestore.instance
                                         .collection('users')
                                         .doc(uid)
@@ -178,7 +174,6 @@ class RechargeRequestPage extends StatelessWidget {
                                       'main': newBalance.toStringAsFixed(2),
                                     });
 
-                                    // 5) Delete the request:
                                     await FirebaseFirestore.instance
                                         .collection('rechargeRequests')
                                         .doc(docId)
@@ -190,7 +185,7 @@ class RechargeRequestPage extends StatelessWidget {
                                                 'Recharge accepted & balance deducted.')));
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Error: $e')),
+                                      SnackBar(content: Text('Error: \$e')),
                                     );
                                   }
                                 },
@@ -207,10 +202,9 @@ class RechargeRequestPage extends StatelessWidget {
                                       .doc(docId)
                                       .delete();
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Recharge request cancelled.')),
-                                  );
+                                      const SnackBar(
+                                          content: Text(
+                                              'Recharge request cancelled.')));
                                 },
                               ),
                             ),
