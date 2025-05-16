@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
 import 'package:ramimapp/button-pages/rechargepage.dart';
@@ -33,6 +34,7 @@ Widget buildDrawer(BuildContext context) {
         final initials = nameParts.length >= 2
             ? "${nameParts[0][0]}${nameParts[1][0]}"
             : fullName.substring(0, 1);
+        final String currentUserAccountNumber = phone;
 
         return ListView(
           padding: EdgeInsets.zero,
@@ -214,11 +216,47 @@ Widget buildDrawer(BuildContext context) {
               title: const Text('Language'),
               onTap: () => print("Language clicked"),
             ),
+
+// Example user data - replace with your actual user's account number
+
             ListTile(
               leading: const Icon(Icons.send),
               title: const Text('Refer'),
-              onTap: () => print("Refer clicked"),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Your Reference Number'),
+                      content: SelectableText(
+                        currentUserAccountNumber,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Clipboard.setData(
+                                ClipboardData(text: currentUserAccountNumber));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Account number copied to clipboard')),
+                            );
+                          },
+                          child: const Text('Copy'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
+
             ListTile(
               leading: const Icon(Icons.share),
               title: const Text('Share'),

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class MyUserMethod extends StatefulWidget {
   const MyUserMethod({super.key});
@@ -10,6 +10,7 @@ class MyUserMethod extends StatefulWidget {
 
 class _MyUserMethodState extends State<MyUserMethod> {
   String _searchText = '';
+  String _referenceFilter = ''; // For filtering by reference code
   final Map<String, bool> _visibleCards = {};
 
   @override
@@ -17,39 +18,70 @@ class _MyUserMethodState extends State<MyUserMethod> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green.shade700,
-        title: const Text(''),
+        title: const Text('All Users', style: TextStyle(color: Colors.white)),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(110), // increased height
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: TextField(
-                onChanged: (value) {
-                  setState(() {
-                    _searchText = value.toLowerCase();
-                  });
-                },
-                decoration: const InputDecoration(
-                  hintText: 'Search',
-                  suffixIcon: Icon(Icons.search, color: Colors.green),
-                  border: InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            child: Column(
+              children: [
+                // Search by name
+                Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        _searchText = value.toLowerCase();
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Search by name',
+                      suffixIcon: Icon(Icons.search, color: Colors.green),
+                      border: InputBorder.none,
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                // Filter by reference code
+                Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        _referenceFilter = value.trim();
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Filter by reference code',
+                      suffixIcon: Icon(Icons.filter_alt, color: Colors.green),
+                      border: InputBorder.none,
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .snapshots(), // Collection name
+        stream: (_referenceFilter.isEmpty)
+            ? FirebaseFirestore.instance.collection('users').snapshots()
+            : FirebaseFirestore.instance
+                .collection('users')
+                .where('reference', isEqualTo: _referenceFilter)
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text("Something went wrong"));
@@ -63,19 +95,28 @@ class _MyUserMethodState extends State<MyUserMethod> {
             return data['name']?.toLowerCase().contains(_searchText) ?? false;
           }).toList();
 
+          if (users.isEmpty) {
+            return const Center(child: Text('No users found'));
+          }
+
           return ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: users.length,
             itemBuilder: (context, index) {
               final user = users[index].data() as Map<String, dynamic>;
               final docId = users[index].id;
+              final initials = _getInitials(user['name'] ?? '');
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.person, color: Colors.green, size: 40),
+                      CircleAvatar(
+                        backgroundColor: Colors.green.shade400,
+                        child: Text(initials,
+                            style: const TextStyle(color: Colors.white)),
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
@@ -103,7 +144,11 @@ class _MyUserMethodState extends State<MyUserMethod> {
                                     'Last login: ${user['lastLogin'] ?? 'N/A'}'),
                                 const Spacer(),
                                 IconButton(
-                                  icon: const Icon(Icons.arrow_drop_down),
+                                  icon: Icon(
+                                    _visibleCards[docId] == true
+                                        ? Icons.arrow_drop_up
+                                        : Icons.arrow_drop_down,
+                                  ),
                                   color: Colors.black54,
                                   onPressed: () {
                                     setState(() {
@@ -137,11 +182,9 @@ class _MyUserMethodState extends State<MyUserMethod> {
                               Text('Created: ${user['createdAt'] ?? ''}',
                                   style: const TextStyle(color: Colors.green)),
                               const SizedBox(height: 8),
-                              ...[
-                                'Main: ৳${user['main'] ?? '0.00'}',
-                                'Due: ৳${user['due'] ?? '0.00'}',
-                                'Advance: ৳${user['advance'] ?? '0.00'}',
-                              ].map((e) => Text(e)),
+                              Text('Main: ৳${user['main'] ?? '0.00'}'),
+                              Text('Due: ৳${user['due'] ?? '0.00'}'),
+                              Text('Advance: ৳${user['advance'] ?? '0.00'}'),
                               const SizedBox(height: 8),
                               Text(user['address'] ?? '',
                                   style: const TextStyle(color: Colors.grey)),
@@ -159,7 +202,9 @@ class _MyUserMethodState extends State<MyUserMethod> {
                                         borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      // Add Payment logic
+                                    },
                                     child: const Text('Payment',
                                         style: TextStyle(color: Colors.green)),
                                   ),
@@ -172,7 +217,9 @@ class _MyUserMethodState extends State<MyUserMethod> {
                                         borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      // Add Edit logic
+                                    },
                                     child: const Text('Edit',
                                         style: TextStyle(color: Colors.green)),
                                   ),
@@ -192,5 +239,15 @@ class _MyUserMethodState extends State<MyUserMethod> {
         },
       ),
     );
+  }
+
+  String _getInitials(String name) {
+    final parts = name.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return '';
   }
 }

@@ -37,11 +37,11 @@ class _AddUserPageState extends State<AddUserPage> {
 
         String result = await _authService.signUpWithEmail(email, password);
         if (result == "success") {
-          // Save user data in Firestore
-          await FirebaseFirestore.instance
-              .collection("users")
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .set({
+          // Get UID
+          String uid = FirebaseAuth.instance.currentUser!.uid;
+
+          // Build user data map
+          Map<String, dynamic> userData = {
             "name": _nameController.text.trim(),
             "phone": _phoneController.text.trim(),
             "email": email,
@@ -50,16 +50,26 @@ class _AddUserPageState extends State<AddUserPage> {
             "gender": _gender,
             "address": _address,
             "pin": _pinController.text.trim(),
-            "uid": FirebaseAuth.instance.currentUser!.uid,
+            "uid": uid,
             "createdAt": Timestamp.now(),
-            "reference": _referenceController.text.trim(), // ✅ Reference added
-          });
+          };
+
+          // Optional: Add reference if not empty
+          String reference = _referenceController.text.trim();
+          if (reference.isNotEmpty) {
+            userData["reference"] = reference;
+          }
+
+          // Save user data in Firestore
+          await FirebaseFirestore.instance
+              .collection("users")
+              .doc(uid)
+              .set(userData);
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Registration successful!")),
           );
 
-          // Navigate to login or home screen
           Navigator.pop(context);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
