@@ -14,9 +14,8 @@ class MoneyRequestPage extends StatelessWidget {
         elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('moneyRequests')
-            .snapshots(), // ✅ Correct collection name
+        stream:
+            FirebaseFirestore.instance.collection('moneyRequests').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
@@ -94,8 +93,6 @@ class MoneyRequestPage extends StatelessWidget {
                                   Text('Email: ${data['email'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Method: ${data['method'] ?? 'N/A'}'),
-
-                                  // 🔥 Copyable Number field
                                   Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -118,7 +115,6 @@ class MoneyRequestPage extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-
                                   Text('Note: ${data['description'] ?? ''}'),
                                 ],
                               ),
@@ -133,15 +129,70 @@ class MoneyRequestPage extends StatelessWidget {
                                 'Accept',
                                 const Color(0xFFC8E6C9),
                                 () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('moneyRequests')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Money request accepted.')),
-                                  );
+                                  try {
+                                    final uid = data['uid'];
+                                    final requestedAmount = double.tryParse(
+                                            data['amount']?.toString() ??
+                                                '0') ??
+                                        0.0;
+
+                                    final userDoc = await FirebaseFirestore
+                                        .instance
+                                        .collection('users')
+                                        .doc(uid)
+                                        .get();
+
+                                    if (userDoc.exists) {
+                                      final userData = userDoc.data()!;
+                                      final currentBalance = double.tryParse(
+                                              userData['main']?.toString() ??
+                                                  '0') ??
+                                          0.0;
+
+                                      if (currentBalance >= requestedAmount) {
+                                        final newBalance =
+                                            currentBalance - requestedAmount;
+
+                                        await FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(uid)
+                                            .update({
+                                          'main': newBalance.toStringAsFixed(2),
+                                        });
+
+                                        await FirebaseFirestore.instance
+                                            .collection('moneyRequests')
+                                            .doc(docId)
+                                            .delete();
+
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Money request accepted and balance updated.'),
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Insufficient balance in user account.'),
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text('User not found.')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error: $e')),
+                                    );
+                                  }
                                 },
                               ),
                             ),
