@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart'; // Add this import for launching phone/URLs
 import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
 import 'package:ramimapp/button-pages/Forgget_pass.dart';
 import 'package:ramimapp/main.dart';
 import 'package:ramimapp/registration_page.dart';
-// Added import
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,7 +35,6 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text("Login successful!")),
       );
 
-      // Navigate to MainPage
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -43,6 +42,16 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result)),
+      );
+    }
+  }
+
+  // Helper method to launch URLs
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch URL")),
       );
     }
   }
@@ -81,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
                         controller: passwordController, obscure: true),
                     const SizedBox(height: 20),
                     SizedBox(
-                      width: 390,
+                      width: double.infinity,
                       child: OutlinedButton(
                         onPressed: _loginWithEmail,
                         style: OutlinedButton.styleFrom(
@@ -100,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
-                      width: 390,
+                      width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.push(
@@ -167,13 +176,44 @@ class _LoginPageState extends State<LoginPage> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.withOpacity(0.5)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _SocialIcon(icon: Icons.call_end, label: "Whatsapp"),
-                    _SocialIcon(icon: Icons.send, label: "Telegram"),
-                    _SocialIcon(icon: Icons.facebook, label: "Facebook"),
-                    _SocialIcon(icon: Icons.call, label: "Helpline"),
+                    _SocialIcon(
+                      icon: Icons.call_end,
+                      label: "Whatsapp",
+                      onTap: () {
+                        // Open WhatsApp chat with number
+                        _launchUrl("https://wa.me/01883834205");
+                      },
+                    ),
+                    _SocialIcon(
+                      icon: Icons.send,
+                      label: "Telegram",
+                      onTap: () {
+                        // Open Telegram chat with number (Telegram username required ideally, fallback to phone dial)
+                        _launchUrl(
+                            "tg://resolve?domain=01883834205"); // may not work, alternative is dialer
+                        // If doesn't work, fallback to dial
+                        // _launchUrl("tel:01883834205");
+                      },
+                    ),
+                    _SocialIcon(
+                      icon: Icons.facebook,
+                      label: "Facebook",
+                      onTap: () {
+                        // Facebook profile/page URL or dial number
+                        _launchUrl("https://www.facebook.com/01883834205");
+                      },
+                    ),
+                    _SocialIcon(
+                      icon: Icons.call,
+                      label: "Helpline",
+                      onTap: () {
+                        // Dial the helpline number
+                        _launchUrl("tel:01883834205");
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -236,20 +276,32 @@ class _LoginPageState extends State<LoginPage> {
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
-  const _SocialIcon({required this.icon, required this.label});
+  const _SocialIcon({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: Colors.indigo,
-          child: Icon(icon, color: Colors.white),
+    return Flexible(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.indigo,
+              radius: 24,
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 6),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label, style: const TextStyle(fontSize: 12)),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
+      ),
     );
   }
 }
