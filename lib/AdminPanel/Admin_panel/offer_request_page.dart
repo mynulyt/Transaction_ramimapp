@@ -22,13 +22,11 @@ class RegularBuyRequestPage extends StatelessWidget {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
           }
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final docs = snapshot.data!.docs;
-
           if (docs.isEmpty) {
             return const Center(child: Text('No regular buy requests found.'));
           }
@@ -40,16 +38,17 @@ class RegularBuyRequestPage extends StatelessWidget {
               final data = docs[index].data() as Map<String, dynamic>;
               final docId = docs[index].id;
 
-              String operator = data['operator'] ?? 'Unknown';
-              String price = data['price'] ?? 'N/A';
-              String name = data['userName'] ?? 'N/A';
-              String internet = data['internet'] ?? 'N/A';
-              String minutes = data['minutes'] ?? 'N/A';
-              String sms = data['sms'] ?? 'N/A';
-              String term = data['term'] ?? 'N/A';
-              String offerType = data['offerType'] ?? 'N/A';
-              String number = data['rechargeNumber'] ?? 'N/A';
-              String email = data['userEmail'] ?? 'N/A';
+              final operator = data['operator'] ?? 'Unknown';
+              final priceStr = data['price']?.toString() ?? '0';
+              final name = data['userName'] ?? 'N/A';
+              final internet = data['internet'] ?? 'N/A';
+              final minutes = data['minutes'] ?? 'N/A';
+              final sms = data['sms'] ?? 'N/A';
+              final term = data['term'] ?? 'N/A';
+              final offerType = data['offerType'] ?? 'N/A';
+              final number = data['rechargeNumber'] ?? 'N/A';
+              final email = data['userEmail'] ?? '';
+              final uid = data['uid']?.toString();
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -82,10 +81,8 @@ class RegularBuyRequestPage extends StatelessWidget {
                         _buildInfoRow('Internet', internet),
                         _buildInfoRow('Minutes', minutes),
                         _buildInfoRow('SMS', sms),
-                        _buildInfoRow('Price', '$price ৳'),
+                        _buildInfoRow('Price', '$priceStr ৳'),
                         _buildInfoRow('Name', name),
-
-                        // 🔥 Copyable Recharge Number
                         Padding(
                           padding: const EdgeInsets.only(bottom: 4.0),
                           child: Row(
@@ -110,7 +107,6 @@ class RegularBuyRequestPage extends StatelessWidget {
                             ],
                           ),
                         ),
-
                         _buildInfoRow('Email', email),
                         _buildInfoRow('Term', term),
                         _buildInfoRow('Offer Type', offerType),
@@ -122,17 +118,102 @@ class RegularBuyRequestPage extends StatelessWidget {
                                 'Accept',
                                 Colors.green[100]!,
                                 () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('requests')
-                                      .doc('regular_buy_requests')
-                                      .collection('items')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Offer accepted.'),
-                                    ),
-                                  );
+                                  try {
+                                    // 1) parse price
+                                    final requestedAmount =
+                                        double.tryParse(priceStr) ?? 0.0;
+
+                                    // 2) locate user doc by uid or fallback to email/phone
+                                    DocumentSnapshot userDoc;
+                                    if (uid != null && uid.isNotEmpty) {
+                                      userDoc = await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(uid)
+                                          .get();
+                                    } else {
+                                      // try email lookup
+                                      final emailQuery = await FirebaseFirestore
+                                          .instance
+                                          .collection('users')
+                                          .where('email', isEqualTo: email)
+                                          .limit(1)
+                                          .get();
+                                      if (emailQuery.docs.isNotEmpty) {
+                                        userDoc = emailQuery.docs.first;
+                                      } else {
+                                        // try phone lookup
+                                        final phoneQuery =
+                                            await FirebaseFirestore
+                                                .instance
+                                                .collection('users')
+                                                .where('phone',
+                                                    isEqualTo: number)
+                                                .limit(1)
+                                                .get();
+                                        if (phoneQuery.docs.isNotEmpty) {
+                                          userDoc = phoneQuery.docs.first;
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                                  content:
+                                                      Text('User not found.')));
+                                          return;
+                                        }
+                                      }
+                                    }
+
+                                    if (!userDoc.exists) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content:
+                                                  Text('User not found.')));
+                                      return;
+                                    }
+
+                                    // 3) parse current balance
+                                    final userData =
+                                        userDoc.data() as Map<String, dynamic>;
+                                    final currentBalance = double.tryParse(
+                                            userData['main']?.toString() ??
+                                                '0') ??
+                                        0.0;
+
+                                    if (currentBalance < requestedAmount) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'Insufficient balance.')));
+                                      return;
+                                    }
+
+                                    final newBalance =
+                                        currentBalance - requestedAmount;
+
+                                    // 4) update user balance
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(userDoc.id)
+                                        .update({
+                                      'main': newBalance.toStringAsFixed(2),
+                                    });
+
+                                    // 5) delete request
+                                    await FirebaseFirestore.instance
+                                        .collection('requests')
+                                        .doc('regular_buy_requests')
+                                        .collection('items')
+                                        .doc(docId)
+                                        .delete();
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Offer accepted & balance deducted.')));
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error: $e')),
+                                    );
+                                  }
                                 },
                               ),
                             ),
