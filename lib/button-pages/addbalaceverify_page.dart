@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ramimapp/main.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -235,7 +236,13 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
                         ),
                       );
 
-                      Navigator.pop(context); // Optionally go back
+                      // Navigate to MainScreen after successful submission
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const MainScreen()),
+                        (route) => false,
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(

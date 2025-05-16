@@ -97,7 +97,65 @@ Widget buildDrawer(BuildContext context) {
             ListTile(
               leading: const Icon(Icons.pin),
               title: const Text('Change PIN'),
-              onTap: () => print("Change PIN clicked"),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    final TextEditingController pinController =
+                        TextEditingController();
+                    return AlertDialog(
+                      title: const Text('Change PIN'),
+                      content: TextField(
+                        controller: pinController,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        maxLength: 6,
+                        decoration: const InputDecoration(
+                          labelText: 'Enter New PIN',
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            String uid = FirebaseAuth.instance.currentUser!.uid;
+                            String newPin = pinController.text.trim();
+                            if (newPin.isEmpty) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("PIN cannot be empty")),
+                              );
+                              return;
+                            }
+                            try {
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(uid)
+                                  .update({'pin': newPin});
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("PIN updated successfully")),
+                              );
+                            } catch (e) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text("Error: ${e.toString()}")),
+                              );
+                            }
+                          },
+                          child: const Text('Update'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.lock_open),
