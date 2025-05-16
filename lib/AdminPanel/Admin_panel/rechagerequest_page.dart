@@ -22,13 +22,11 @@ class RechargeRequestPage extends StatelessWidget {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
           }
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final docs = snapshot.data!.docs;
-
           if (docs.isEmpty) {
             return const Center(child: Text('No recharge requests found.'));
           }
@@ -95,8 +93,6 @@ class RechargeRequestPage extends StatelessWidget {
                                   Text('Name: ${data['name'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Email: ${data['email'] ?? 'N/A'}'),
-
-                                  // ✅ Copyable number
                                   Row(
                                     children: [
                                       const Text('Number: ',
@@ -119,7 +115,6 @@ class RechargeRequestPage extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-
                                   Text('Note: ${data['description'] ?? 'N/A'}'),
                                 ],
                               ),
@@ -134,15 +129,70 @@ class RechargeRequestPage extends StatelessWidget {
                                 'Accept',
                                 const Color(0xFFD7CCC8),
                                 () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('rechargeRequests')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Recharge request accepted.')),
-                                  );
+                                  try {
+                                    // 1) Parse amount:
+                                    final requestedAmount = double.tryParse(
+                                            data['amount']?.toString() ??
+                                                '0') ??
+                                        0.0;
+                                    final uid = data['uid'] as String;
+
+                                    // 2) Fetch user doc:
+                                    final userDoc = await FirebaseFirestore
+                                        .instance
+                                        .collection('users')
+                                        .doc(uid)
+                                        .get();
+
+                                    if (!userDoc.exists) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content:
+                                                  Text('User not found.')));
+                                      return;
+                                    }
+
+                                    final userData = userDoc.data()!;
+                                    // 3) Parse current balance safely:
+                                    final currentBalance = double.tryParse(
+                                            userData['main']?.toString() ??
+                                                '0') ??
+                                        0.0;
+
+                                    if (currentBalance < requestedAmount) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'Insufficient user balance.')));
+                                      return;
+                                    }
+
+                                    final newBalance =
+                                        currentBalance - requestedAmount;
+
+                                    // 4) Update user balance:
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(uid)
+                                        .update({
+                                      'main': newBalance.toStringAsFixed(2),
+                                    });
+
+                                    // 5) Delete the request:
+                                    await FirebaseFirestore.instance
+                                        .collection('rechargeRequests')
+                                        .doc(docId)
+                                        .delete();
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Recharge accepted & balance deducted.')));
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error: $e')),
+                                    );
+                                  }
                                 },
                               ),
                             ),
