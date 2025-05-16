@@ -12,6 +12,7 @@ import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transferconfirm_page.dart';
 
 import 'package:ramimapp/login_page.dart';
+import 'package:ramimapp/widgets/balance_toggole.dart';
 import 'package:ramimapp/widgets/drawer.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -160,32 +161,7 @@ class _MainScreenState extends State<MainScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          showBalance = !showBalance;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 30, horizontal: 40),
-                        backgroundColor: Colors.indigo,
-                      ),
-                      child: Text(
-                        showBalance
-                            ? "৳${balance.toStringAsFixed(2)}"
-                            : "Tap to\nShow Balance",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                    BalanceToggleButton(balance: balance),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
