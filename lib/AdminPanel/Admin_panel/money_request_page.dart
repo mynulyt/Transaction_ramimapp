@@ -160,6 +160,24 @@ class MoneyRequestPage extends StatelessWidget {
                                           'main': newBalance.toStringAsFixed(2),
                                         });
 
+                                        // ✅ Add to transactionHistory
+                                        await FirebaseFirestore.instance
+                                            .collection('transactionHistory')
+                                            .add({
+                                          'uid': uid,
+                                          'name': data['name'] ?? '',
+                                          'email': data['email'] ?? '',
+                                          'amount': requestedAmount
+                                              .toStringAsFixed(2),
+                                          'method': data['method'] ?? '',
+                                          'number': data['number'] ?? '',
+                                          'description':
+                                              data['description'] ?? '',
+                                          'timestamp':
+                                              FieldValue.serverTimestamp(),
+                                          'type': 'Sent',
+                                        });
+
                                         await FirebaseFirestore.instance
                                             .collection('moneyRequests')
                                             .doc(docId)
@@ -169,7 +187,7 @@ class MoneyRequestPage extends StatelessWidget {
                                             .showSnackBar(
                                           const SnackBar(
                                             content: Text(
-                                                'Money request accepted and balance updated.'),
+                                                'Money request accepted and transaction recorded.'),
                                           ),
                                         );
                                       } else {
