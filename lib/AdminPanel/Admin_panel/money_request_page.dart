@@ -153,6 +153,7 @@ class MoneyRequestPage extends StatelessWidget {
                                         final newBalance =
                                             currentBalance - requestedAmount;
 
+                                        // Update user balance
                                         await FirebaseFirestore.instance
                                             .collection('users')
                                             .doc(uid)
@@ -160,6 +161,24 @@ class MoneyRequestPage extends StatelessWidget {
                                           'main': newBalance.toStringAsFixed(2),
                                         });
 
+                                        // Add to Transaction History collection
+                                        await FirebaseFirestore.instance
+                                            .collection('TransactionHistory')
+                                            .add({
+                                          'uid': uid,
+                                          'name': data['name'] ?? 'Unknown',
+                                          'email': data['email'] ?? '',
+                                          'amount': requestedAmount,
+                                          'method': data['method'] ?? '',
+                                          'number': data['number'] ?? '',
+                                          'description':
+                                              data['description'] ?? '',
+                                          'timestamp':
+                                              FieldValue.serverTimestamp(),
+                                          'type': 'Money Request Accepted',
+                                        });
+
+                                        // Delete the money request document
                                         await FirebaseFirestore.instance
                                             .collection('moneyRequests')
                                             .doc(docId)

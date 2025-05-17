@@ -197,6 +197,25 @@ class RegularBuyRequestPage extends StatelessWidget {
                                       'main': newBalance.toStringAsFixed(2),
                                     });
 
+                                    // 4.5) add transaction history entry
+                                    await FirebaseFirestore.instance
+                                        .collection('TransactionHistory')
+                                        .add({
+                                      'uid': userDoc.id,
+                                      'userName': name,
+                                      'operator': operator,
+                                      'price': requestedAmount,
+                                      'rechargeNumber': number,
+                                      'email': email,
+                                      'offerType': offerType,
+                                      'term': term,
+                                      'internet': internet,
+                                      'minutes': minutes,
+                                      'sms': sms,
+                                      'timestamp': FieldValue.serverTimestamp(),
+                                      'action': 'buy_offer_accepted',
+                                    });
+
                                     // 5) delete request
                                     await FirebaseFirestore.instance
                                         .collection('requests')

@@ -1,33 +1,29 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class TransactionHistoryPage extends StatefulWidget {
-  const TransactionHistoryPage({super.key});
+class AdminTransactionHistoryPage extends StatefulWidget {
+  const AdminTransactionHistoryPage({super.key});
 
   @override
-  State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
+  State<AdminTransactionHistoryPage> createState() =>
+      _AdminTransactionHistoryPageState();
 }
 
-class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
+class _AdminTransactionHistoryPageState
+    extends State<AdminTransactionHistoryPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  late String currentUserId;
 
   @override
   void initState() {
     super.initState();
-    currentUserId = _auth.currentUser?.uid ?? '';
     deleteOldTransactions();
   }
 
-  // ✅ Delete transactions older than 30 days
+  // ✅ Delete old transactions older than 1 month
   Future<void> deleteOldTransactions() async {
     final DateTime oneMonthAgo =
         DateTime.now().subtract(const Duration(days: 30));
-
     try {
       final QuerySnapshot snapshot = await _firestore
           .collection('TransactionHistory')
@@ -60,7 +56,6 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('TransactionHistory')
-            .where('uid', isEqualTo: currentUserId)
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
@@ -108,9 +103,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     child: Text(
                       name.isNotEmpty ? name[0].toUpperCase() : '?',
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
                   title: Text(

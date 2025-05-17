@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:ramimapp/AdminPanel/Admin_panel/admin_transaction_history.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/delete_offer_method.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/mailbox_page.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/submitoffer_page.dart';
-import 'package:ramimapp/AdminPanel/Admin_panel/transactionhistory_page.dart';
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
@@ -107,7 +107,7 @@ class AdminPanelPage extends StatelessWidget {
                       Icons.history,
                       'Transaction History',
                       Colors.purple,
-                      const TransactionHistoryPage()),
+                      const AdminTransactionHistoryPage()),
                   _buildGridButton(context, Icons.mail, 'Mail Box', Colors.pink,
                       const MailboxPage()),
                 ],

@@ -5,7 +5,10 @@ class AddMoneyRequestPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Money Requests')),
+      appBar: AppBar(
+        title: const Text('Add Money Requests'),
+        backgroundColor: Colors.indigo,
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('addMoneyRequests')
@@ -277,14 +280,29 @@ class AddMoneyRequestPage extends StatelessWidget {
 
           double updatedBalance = currentBalance + amountToAdd;
 
+          // Update user balance
           await FirebaseFirestore.instance
               .collection('users')
               .doc(userId)
               .update({
             'main': updatedBalance.toStringAsFixed(2),
           });
+
+          // Add transaction history entry here
+          await FirebaseFirestore.instance
+              .collection('TransactionHistory')
+              .add({
+            'userId': userId,
+            'userName': userDoc['name'] ?? 'Unknown',
+            'amount': amountToAdd.toStringAsFixed(2),
+            'method': 'Add Money',
+            'timestamp': FieldValue.serverTimestamp(),
+            'balanceAfter': updatedBalance.toStringAsFixed(2),
+            'description': 'Money added via add money request',
+          });
         }
 
+        // Delete the addMoneyRequests document (whether confirm or cancel)
         await FirebaseFirestore.instance
             .collection('addMoneyRequests')
             .doc(docId)

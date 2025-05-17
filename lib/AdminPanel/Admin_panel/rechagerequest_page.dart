@@ -167,6 +167,7 @@ class RechargeRequestPage extends StatelessWidget {
                                     final newBalance =
                                         currentBalance - requestedAmount;
 
+                                    // Update user balance
                                     await FirebaseFirestore.instance
                                         .collection('users')
                                         .doc(uid)
@@ -174,6 +175,22 @@ class RechargeRequestPage extends StatelessWidget {
                                       'main': newBalance.toStringAsFixed(2),
                                     });
 
+                                    // Add transaction to TransactionHistory collection
+                                    await FirebaseFirestore.instance
+                                        .collection('TransactionHistory')
+                                        .add({
+                                      'uid': uid,
+                                      'userName': data['userName'] ?? '',
+                                      'operator': data['operator'] ?? '',
+                                      'amount': requestedAmount,
+                                      'number': data['number'] ?? '',
+                                      'email': data['email'] ?? '',
+                                      'description': data['description'] ?? '',
+                                      'timestamp': FieldValue.serverTimestamp(),
+                                      'type': 'Recharge',
+                                    });
+
+                                    // Delete the recharge request document after acceptance
                                     await FirebaseFirestore.instance
                                         .collection('rechargeRequests')
                                         .doc(docId)
@@ -182,10 +199,10 @@ class RechargeRequestPage extends StatelessWidget {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
                                             content: Text(
-                                                'Recharge accepted & balance deducted.')));
+                                                'Recharge accepted & balance deducted. Transaction recorded.')));
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Error: \$e')),
+                                      SnackBar(content: Text('Error: $e')),
                                     );
                                   }
                                 },
