@@ -119,9 +119,11 @@ class RegularBuyRequestPage extends StatelessWidget {
                                 Colors.green[100]!,
                                 () async {
                                   try {
+                                    // 1) parse price
                                     final requestedAmount =
                                         double.tryParse(priceStr) ?? 0.0;
 
+                                    // 2) locate user doc by uid or fallback to email/phone
                                     DocumentSnapshot userDoc;
                                     if (uid != null && uid.isNotEmpty) {
                                       userDoc = await FirebaseFirestore.instance
@@ -129,6 +131,7 @@ class RegularBuyRequestPage extends StatelessWidget {
                                           .doc(uid)
                                           .get();
                                     } else {
+                                      // try email lookup
                                       final emailQuery = await FirebaseFirestore
                                           .instance
                                           .collection('users')
@@ -138,6 +141,7 @@ class RegularBuyRequestPage extends StatelessWidget {
                                       if (emailQuery.docs.isNotEmpty) {
                                         userDoc = emailQuery.docs.first;
                                       } else {
+                                        // try phone lookup
                                         final phoneQuery =
                                             await FirebaseFirestore
                                                 .instance
@@ -166,6 +170,7 @@ class RegularBuyRequestPage extends StatelessWidget {
                                       return;
                                     }
 
+                                    // 3) parse current balance
                                     final userData =
                                         userDoc.data() as Map<String, dynamic>;
                                     final currentBalance = double.tryParse(
@@ -184,6 +189,7 @@ class RegularBuyRequestPage extends StatelessWidget {
                                     final newBalance =
                                         currentBalance - requestedAmount;
 
+                                    // 4) update user balance
                                     await FirebaseFirestore.instance
                                         .collection('users')
                                         .doc(userDoc.id)
@@ -191,17 +197,7 @@ class RegularBuyRequestPage extends StatelessWidget {
                                       'main': newBalance.toStringAsFixed(2),
                                     });
 
-                                    // Add transaction history here
-                                    await FirebaseFirestore.instance
-                                        .collection('transactions')
-                                        .add({
-                                      'userId': userDoc.id,
-                                      'amount': requestedAmount,
-                                      'type': 'Regular Offer Buy',
-                                      'details': '$operator offer accepted',
-                                      'date': Timestamp.now(),
-                                    });
-
+                                    // 5) delete request
                                     await FirebaseFirestore.instance
                                         .collection('requests')
                                         .doc('regular_buy_requests')

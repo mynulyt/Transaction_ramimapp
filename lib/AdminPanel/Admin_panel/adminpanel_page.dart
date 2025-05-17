@@ -102,12 +102,12 @@ class AdminPanelPage extends StatelessWidget {
                       Colors.teal, const AddUserPage()),
                   _buildGridButton(context, Icons.account_balance_wallet,
                       'Tally Khata', Colors.orange, const TallyKhataPage()),
-                  // _buildGridButton(
-                  //     context,
-                  //     Icons.history,
-                  //     'Transaction History',
-                  //     Colors.purple,
-                  //     const TransactionHistoryPage()),
+                  _buildGridButton(
+                      context,
+                      Icons.history,
+                      'Transaction History',
+                      Colors.purple,
+                      const TransactionHistoryPage()),
                   _buildGridButton(context, Icons.mail, 'Mail Box', Colors.pink,
                       const MailboxPage()),
                 ],
