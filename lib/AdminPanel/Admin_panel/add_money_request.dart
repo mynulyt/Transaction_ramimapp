@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddMoneyRequestPage extends StatelessWidget {
+  const AddMoneyRequestPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -311,6 +313,8 @@ class AddMoneyRequestPage extends StatelessWidget {
 }
 
 class PinVerificationDialog extends StatefulWidget {
+  const PinVerificationDialog({super.key});
+
   @override
   State<PinVerificationDialog> createState() => _PinVerificationDialogState();
 }

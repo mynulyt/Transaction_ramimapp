@@ -185,7 +185,8 @@ class RechargeRequestPage extends StatelessWidget {
                                                 'Recharge accepted & balance deducted.')));
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Error: \$e')),
+                                      const SnackBar(
+                                          content: Text('Error: \$e')),
                                     );
                                   }
                                 },

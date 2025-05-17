@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class BalanceContainer extends StatefulWidget {
   final String userId;
 
-  const BalanceContainer({Key? key, required this.userId}) : super(key: key);
+  const BalanceContainer({super.key, required this.userId});
 
   @override
   State<BalanceContainer> createState() => _BalanceContainerState();
