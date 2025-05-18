@@ -16,35 +16,44 @@ class SendMoneyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Send Money")),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 30.0, left: 80),
-        child: Column(
-          children: [
-            Row(
+      appBar: AppBar(title: const Text('Select Payment Method')),
+      body: SafeArea(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                buildGridButton("Bkash", 'images/bkash.jpg', () {
-                  navigateToSendPage(context, "Bkash");
-                }),
-                const SizedBox(width: 60),
-                buildGridButton("Nagad", 'images/nagad.jpg', () {
-                  navigateToSendPage(context, "Nagad");
-                }),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    buildGridButton("Bkash", 'images/bkash.jpg', () {
+                      navigateToSendPage(context, "Bkash");
+                    }),
+                    const SizedBox(width: 40),
+                    buildGridButton("Nagad", 'images/nagad.jpg', () {
+                      navigateToSendPage(context, "Nagad");
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    buildGridButton("Rocket", 'images/rocket.png', () {
+                      navigateToSendPage(context, "Rocket");
+                    }),
+                    const SizedBox(width: 40),
+                    buildGridButton("Upay", 'images/upay.png', () {
+                      navigateToSendPage(context, "Upay");
+                    }),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: 40),
-            Row(
-              children: [
-                buildGridButton("Rocket", 'images/rocket.png', () {
-                  navigateToSendPage(context, "Rocket");
-                }),
-                const SizedBox(width: 60),
-                buildGridButton("Upay", 'images/upay.png', () {
-                  navigateToSendPage(context, "Upay");
-                }),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
