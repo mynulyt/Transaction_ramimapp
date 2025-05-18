@@ -13,6 +13,7 @@ import 'package:ramimapp/button-pages/transferconfirm_page.dart';
 
 import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/widgets/balance_toggole.dart';
+import 'package:ramimapp/widgets/change_pin.dart';
 import 'package:ramimapp/widgets/drawer.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -240,7 +241,7 @@ class _MainScreenState extends State<MainScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const OfferMethodPage()));
+                            builder: (context) => const ChangePin()));
                   }),
                 ],
               ),
