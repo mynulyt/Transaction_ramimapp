@@ -88,16 +88,18 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    categoryButton('All'),
-                    categoryButton('Minutes'),
-                    categoryButton('Internet'),
-                    categoryButton('Bundles'),
-                    categoryButton('Call Rate'),
-                    categoryButton('SMS'),
-                  ],
+                child: SingleChildScrollView(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      categoryButton('All'),
+                      categoryButton('Minutes'),
+                      categoryButton('Internet'),
+                      categoryButton('Bundles'),
+                      categoryButton('Call Rate'),
+                      categoryButton('SMS'),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
