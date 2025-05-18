@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart'; // Add this import for launching phone/URLs
 import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
@@ -18,6 +17,12 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    emailController.text = AuthService.lastUsedEmail ?? "";
+  }
+
   void _loginWithEmail() async {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
@@ -32,10 +37,6 @@ class _LoginPageState extends State<LoginPage> {
     final result = await AuthService().signInWithEmail(email, password);
 
     if (result == "success") {
-      // ✅ Save email to SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_email', email); // <-- Added
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login successful!")),
       );
@@ -45,8 +46,26 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } else {
+      String errorMessage;
+
+      if (result.toLowerCase().contains('wrong-password')) {
+        errorMessage = "Wrong password";
+      } else if (result.toLowerCase().contains('user-not-found')) {
+        errorMessage = "User not found";
+      } else if (result.toLowerCase().contains('invalid-email')) {
+        errorMessage = "Invalid email";
+      } else {
+        errorMessage = "Wrong Password ! Please Try Again";
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result)),
+        SnackBar(
+            content: Center(
+          child: Text(
+            errorMessage,
+            style: TextStyle(color: Colors.red),
+          ),
+        )),
       );
     }
   }
@@ -189,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                       label: "Whatsapp",
                       onTap: () {
                         // Open WhatsApp chat with number
-                        _launchUrl("https://wa.me/8801872597773");
+                        _launchUrl("https://wa.me/01883834205");
                       },
                     ),
                     _SocialIcon(
@@ -198,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: () {
                         // Open Telegram chat with number (Telegram username required ideally, fallback to phone dial)
                         _launchUrl(
-                            "https://t.me/Ramimpay"); // may not work, alternative is dialer
+                            "tg://resolve?domain=01883834205"); // may not work, alternative is dialer
                         // If doesn't work, fallback to dial
                         // _launchUrl("tel:01883834205");
                       },
@@ -216,7 +235,7 @@ class _LoginPageState extends State<LoginPage> {
                       label: "Helpline",
                       onTap: () {
                         // Dial the helpline number
-                        _launchUrl("01872597773");
+                        _launchUrl("tel:01883834205");
                       },
                     ),
                   ],
