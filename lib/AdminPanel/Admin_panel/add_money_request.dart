@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddMoneyRequestPage extends StatelessWidget {
-  final String adminId = 'mynulalam'; // 🔐 Admin ID
+  final String adminId = 'mynulalam';
+
+  const AddMoneyRequestPage({super.key}); // 🔐 Admin ID
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +258,8 @@ class AddMoneyRequestPage extends StatelessWidget {
 }
 
 class PinVerificationDialog extends StatefulWidget {
+  const PinVerificationDialog({super.key});
+
   @override
   State<PinVerificationDialog> createState() => _PinVerificationDialogState();
 }
