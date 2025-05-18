@@ -208,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                       label: "Whatsapp",
                       onTap: () {
                         // Open WhatsApp chat with number
-                        _launchUrl("https://wa.me/01883834205");
+                        _launchUrl("https://wa.me/8801872597773");
                       },
                     ),
                     _SocialIcon(
@@ -217,17 +217,17 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: () {
                         // Open Telegram chat with number (Telegram username required ideally, fallback to phone dial)
                         _launchUrl(
-                            "tg://resolve?domain=01883834205"); // may not work, alternative is dialer
+                            "https://t.me/Ramimpay"); // may not work, alternative is dialer
                         // If doesn't work, fallback to dial
                         // _launchUrl("tel:01883834205");
                       },
                     ),
                     _SocialIcon(
-                      icon: Icons.facebook,
-                      label: "Facebook",
+                      icon: Icons.video_collection_outlined,
+                      label: "Youtube",
                       onTap: () {
                         // Facebook profile/page URL or dial number
-                        _launchUrl("https://www.facebook.com/01883834205");
+                        _launchUrl("https://www.youtube.com/@Ramimpay");
                       },
                     ),
                     _SocialIcon(
@@ -235,7 +235,7 @@ class _LoginPageState extends State<LoginPage> {
                       label: "Helpline",
                       onTap: () {
                         // Dial the helpline number
-                        _launchUrl("tel:01883834205");
+                        _launchUrl("tel:8801872597773");
                       },
                     ),
                   ],

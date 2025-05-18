@@ -7,6 +7,8 @@ import 'package:ramimapp/Database/Auth_services/auth_services.dart';
 import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/main.dart';
+import 'package:ramimapp/widgets/change_password.dart';
+import 'package:ramimapp/widgets/change_pin.dart';
 
 Widget buildDrawer(BuildContext context) {
   final currentUser = FirebaseAuth.instance.currentUser;
@@ -100,103 +102,16 @@ Widget buildDrawer(BuildContext context) {
               leading: const Icon(Icons.pin),
               title: const Text('Change PIN'),
               onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    final TextEditingController pinController =
-                        TextEditingController();
-                    return AlertDialog(
-                      title: const Text('Change PIN'),
-                      content: TextField(
-                        controller: pinController,
-                        keyboardType: TextInputType.number,
-                        obscureText: true,
-                        maxLength: 6,
-                        decoration: const InputDecoration(
-                          labelText: 'Enter New PIN',
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            String uid = FirebaseAuth.instance.currentUser!.uid;
-                            String newPin = pinController.text.trim();
-                            if (newPin.isEmpty) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text("PIN cannot be empty")),
-                              );
-                              return;
-                            }
-                            try {
-                              await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(uid)
-                                  .update({'pin': newPin});
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text("PIN updated successfully")),
-                              );
-                            } catch (e) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text("Error: ${e.toString()}")),
-                              );
-                            }
-                          },
-                          child: const Text('Update'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ChangePin()));
               },
             ),
             ListTile(
               leading: const Icon(Icons.lock_open),
               title: const Text('Change Password'),
               onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    final TextEditingController passwordController =
-                        TextEditingController();
-                    return AlertDialog(
-                      title: const Text('Change Password'),
-                      content: TextField(
-                        controller: passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: 'New Password',
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            String result = await AuthService()
-                                .changePassword(passwordController.text.trim());
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result)),
-                            );
-                          },
-                          child: const Text('Change'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ChangePassword()));
               },
             ),
             ListTile(
