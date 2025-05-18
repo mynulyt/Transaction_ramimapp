@@ -59,6 +59,14 @@ class _AddUserPageState extends State<AddUserPage> {
             "pin": _pinController.text.trim(),
             "uid": uid,
             "createdAt": Timestamp.now(),
+
+            // Newly added fields from RegistrationPage
+            "main": "0.00",
+            "advance": "0.00",
+            "due": "0.00",
+            "lastLogin":
+                "${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year} ${TimeOfDay.now().format(context)}",
+            "status": "Active",
           };
 
           String reference = _referenceController.text.trim();
