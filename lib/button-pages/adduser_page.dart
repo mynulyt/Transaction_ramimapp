@@ -5,7 +5,9 @@ import 'package:ramimapp/Database/Auth_services/auth_services.dart';
 import 'package:ramimapp/textFieldWidget.dart';
 
 class AddUserPage extends StatefulWidget {
-  const AddUserPage({super.key});
+  final String? referenceNumber; // ✅ Constructor parameter for reference
+
+  const AddUserPage({super.key, this.referenceNumber});
 
   @override
   _AddUserPageState createState() => _AddUserPageState();
@@ -21,13 +23,20 @@ class _AddUserPageState extends State<AddUserPage> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
-  final TextEditingController _referenceController =
-      TextEditingController(); // ✅ New controller
+  final TextEditingController _referenceController = TextEditingController();
 
   String _gender = "Male";
   String _address = "Dhaka";
 
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.referenceNumber != null) {
+      _referenceController.text = widget.referenceNumber!;
+    }
+  }
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
@@ -37,10 +46,8 @@ class _AddUserPageState extends State<AddUserPage> {
 
         String result = await _authService.signUpWithEmail(email, password);
         if (result == "success") {
-          // Get UID
           String uid = FirebaseAuth.instance.currentUser!.uid;
 
-          // Build user data map
           Map<String, dynamic> userData = {
             "name": _nameController.text.trim(),
             "phone": _phoneController.text.trim(),
@@ -54,13 +61,11 @@ class _AddUserPageState extends State<AddUserPage> {
             "createdAt": Timestamp.now(),
           };
 
-          // Optional: Add reference if not empty
           String reference = _referenceController.text.trim();
           if (reference.isNotEmpty) {
             userData["reference"] = reference;
           }
 
-          // Save user data in Firestore
           await FirebaseFirestore.instance
               .collection("users")
               .doc(uid)
@@ -120,7 +125,7 @@ class _AddUserPageState extends State<AddUserPage> {
                 buildTextField(Icons.vpn_key, "Pin",
                     obscureText: true, controller: _pinController),
                 buildTextField(Icons.person_add, "Reference Code (optional)",
-                    controller: _referenceController), // ✅ UI field added
+                    controller: _referenceController),
                 buildGenderDropdown(Icons.person, "Select Gender"),
                 buildAutoCompleteField(
                   icon: Icons.map,

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/transactionhistory_page.dart';
 import 'package:ramimapp/button-pages/addbalancemethod_page.dart';
 import 'package:ramimapp/button-pages/adduser_page.dart';
-import 'package:ramimapp/button-pages/myusermethod.dart';
 import 'package:ramimapp/button-pages/offermethod_page.dart';
 import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
@@ -221,9 +220,12 @@ class _MainScreenState extends State<MainScreen> {
                   }),
                   buildGridButton("Add User", Icons.person_add, () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const AddUserPage()));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AddUserPage(referenceNumber: phone),
+                      ),
+                    );
                   }),
                   buildGridButton("My User", Icons.group, () {
                     Navigator.push(

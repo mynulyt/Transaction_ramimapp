@@ -18,9 +18,10 @@ class _UsersMyUserState extends State<UsersMyUser> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green.shade700,
-        title: const Text('All Users', style: TextStyle(color: Colors.white)),
+        title:
+            const Text('All My Users', style: TextStyle(color: Colors.white)),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(110), // increased height
+          preferredSize: const Size.fromHeight(110),
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Column(
@@ -77,7 +78,11 @@ class _UsersMyUserState extends State<UsersMyUser> {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: (_referenceFilter.isEmpty)
-            ? FirebaseFirestore.instance.collection('users').snapshots()
+            ? FirebaseFirestore.instance
+                .collection('users')
+                .where('reference',
+                    isGreaterThan: '') // Only users with reference
+                .snapshots()
             : FirebaseFirestore.instance
                 .collection('users')
                 .where('reference', isEqualTo: _referenceFilter)
