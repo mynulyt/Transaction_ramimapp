@@ -24,6 +24,7 @@ class ChangePin extends StatelessWidget {
                 height: 50,
               ),
               TextField(
+                obscureText: true,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.grey.shade200,
@@ -42,6 +43,7 @@ class ChangePin extends StatelessWidget {
                 height: 20,
               ),
               TextField(
+                obscureText: true,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.grey.shade200,
@@ -60,6 +62,7 @@ class ChangePin extends StatelessWidget {
                 height: 20,
               ),
               TextField(
+                obscureText: true,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.grey.shade200,
