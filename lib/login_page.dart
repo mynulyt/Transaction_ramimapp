@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart'; // Add this import for launching phone/URLs
 import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
@@ -31,6 +32,10 @@ class _LoginPageState extends State<LoginPage> {
     final result = await AuthService().signInWithEmail(email, password);
 
     if (result == "success") {
+      // ✅ Save email to SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_email', email); // <-- Added
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login successful!")),
       );
@@ -184,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
                       label: "Whatsapp",
                       onTap: () {
                         // Open WhatsApp chat with number
-                        _launchUrl("https://wa.me/01883834205");
+                        _launchUrl("https://wa.me/8801872597773");
                       },
                     ),
                     _SocialIcon(
@@ -193,7 +198,7 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: () {
                         // Open Telegram chat with number (Telegram username required ideally, fallback to phone dial)
                         _launchUrl(
-                            "tg://resolve?domain=01883834205"); // may not work, alternative is dialer
+                            "https://t.me/Ramimpay"); // may not work, alternative is dialer
                         // If doesn't work, fallback to dial
                         // _launchUrl("tel:01883834205");
                       },
@@ -211,7 +216,7 @@ class _LoginPageState extends State<LoginPage> {
                       label: "Helpline",
                       onTap: () {
                         // Dial the helpline number
-                        _launchUrl("tel:01883834205");
+                        _launchUrl("01872597773");
                       },
                     ),
                   ],
