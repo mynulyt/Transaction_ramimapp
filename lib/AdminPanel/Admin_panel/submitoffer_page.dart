@@ -14,6 +14,7 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
   final TextEditingController minutesController = TextEditingController();
   final TextEditingController smsController = TextEditingController();
   final TextEditingController termController = TextEditingController();
+  final TextEditingController callRateController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
 
   String? selectedOperator;
@@ -36,6 +37,7 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
       'minutes': minutesController.text.trim(),
       'sms': smsController.text.trim(),
       'term': termController.text.trim(),
+      'callRate': callRateController.text.trim(),
       'price': priceController.text.trim(),
       'submittedAt': Timestamp.now(),
     };
@@ -50,6 +52,7 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
       smsController.clear();
       termController.clear();
       priceController.clear();
+      callRateController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),
@@ -104,6 +107,11 @@ class _SubmitOfferPageState extends State<SubmitOfferPage> {
             _buildTextField(
               hintText: 'Enter SMS count (e.g. 50)',
               controller: smsController,
+            ),
+            const SizedBox(height: 8),
+            _buildTextField(
+              hintText: 'Enter Call Rate count (e.g. 50)',
+              controller: callRateController,
             ),
             const SizedBox(height: 24),
             _buildSectionHeader('Term'),
