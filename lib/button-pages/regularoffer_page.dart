@@ -89,6 +89,7 @@ class _RegularofferBuyPageState extends State<RegularofferBuyPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
