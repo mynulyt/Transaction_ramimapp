@@ -10,6 +10,7 @@ import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transferconfirm_page.dart';
+import 'package:ramimapp/button-pages/users_my_user.dart';
 
 import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/widgets/balance_toggole.dart';
@@ -228,7 +229,7 @@ class _MainScreenState extends State<MainScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const MyUserMethod()));
+                            builder: (context) => const UsersMyUser()));
                   }),
                   buildGridButton("Transfer", Icons.sync_alt, () {
                     Navigator.push(
