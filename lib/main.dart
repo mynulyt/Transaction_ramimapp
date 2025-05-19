@@ -7,11 +7,11 @@ import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/offermethod_page.dart';
 import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
+import 'package:ramimapp/button-pages/slash_screen.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transferconfirm_page.dart';
 import 'package:ramimapp/button-pages/users_my_user.dart';
 
-import 'package:ramimapp/login_page.dart';
 import 'package:ramimapp/widgets/balance_toggole.dart';
 import 'package:ramimapp/widgets/drawer.dart';
 
@@ -28,8 +28,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: LoginPage(),
+    return MaterialApp(
+      home: SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
