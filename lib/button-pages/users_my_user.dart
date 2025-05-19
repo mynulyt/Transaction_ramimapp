@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ramimapp/button-pages/transferconfirm_page.dart';
+
 import 'package:ramimapp/button-pages/user_to_user_pay.dart';
 
 class UsersMyUser extends StatefulWidget {
