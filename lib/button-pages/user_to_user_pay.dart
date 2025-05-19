@@ -1,9 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class UserToUserTransferConfirmPage extends StatefulWidget {
-  const UserToUserTransferConfirmPage({super.key});
+  final String? receiverName;
+  final String? receiverPhone;
+
+  const UserToUserTransferConfirmPage({
+    super.key,
+    this.receiverName,
+    this.receiverPhone,
+  });
 
   @override
   _UserToUserTransferConfirmPageState createState() =>
@@ -17,37 +24,58 @@ class _UserToUserTransferConfirmPageState
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String? _receiverUid;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.receiverPhone != null) {
+      _phoneController.text = widget.receiverPhone!;
+      _fetchUserByPhone(widget.receiverPhone!);
+    }
+    if (widget.receiverName != null) {
+      _usernameController.text = widget.receiverName!;
+    }
+  }
+
   Future<void> _fetchUserByPhone(String phone) async {
-    final querySnapshot = await _firestore
+    final snapshot = await _firestore
         .collection('users')
         .where('phone', isEqualTo: phone)
         .limit(1)
         .get();
 
-    if (querySnapshot.docs.isNotEmpty) {
-      final userData = querySnapshot.docs.first.data();
-      final username = userData['name'] ?? '';
-      final uid = querySnapshot.docs.first.id;
-
+    if (snapshot.docs.isNotEmpty) {
+      final userData = snapshot.docs.first.data();
       setState(() {
-        _usernameController.text = username;
-        _receiverUid = uid;
+        _usernameController.text = userData['name'] ?? '';
+        _receiverUid = snapshot.docs.first.id;
       });
     } else {
       setState(() {
         _usernameController.clear();
         _receiverUid = null;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not found with this phone number')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("User not found")));
     }
+  }
+
+  Widget _buildField(TextEditingController controller, String label,
+      {TextInputType keyboardType = TextInputType.text,
+      bool readOnly = false}) {
+    return TextField(
+      controller: controller,
+      readOnly: readOnly,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+      ),
+    );
   }
 
   void _showPinDialog() {
@@ -74,7 +102,7 @@ class _UserToUserTransferConfirmPageState
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              _submitTransfer(pinController.text);
+              _submitTransfer(pinController.text.trim());
             },
             child: const Text("Confirm"),
           ),
@@ -157,7 +185,7 @@ class _UserToUserTransferConfirmPageState
       final receiverMain =
           double.tryParse(receiverData['main'].toString()) ?? 0;
 
-      // Transaction
+      // Run Transaction
       await _firestore.runTransaction((transaction) async {
         transaction.update(senderDocRef, {
           'main': (senderMain - amount).toStringAsFixed(2),
@@ -181,11 +209,8 @@ class _UserToUserTransferConfirmPageState
         const SnackBar(content: Text('Transfer successful')),
       );
 
-      _phoneController.clear();
-      _usernameController.clear();
       _amountController.clear();
       _descriptionController.clear();
-      _receiverUid = null;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -193,50 +218,26 @@ class _UserToUserTransferConfirmPageState
     }
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      {bool readOnly = false, void Function(String)? onChanged}) {
-    return TextField(
-      controller: controller,
-      readOnly: readOnly,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transfer Confirmation'),
+        title: const Text("Confirm Transfer"),
         backgroundColor: Colors.green.shade700,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildTextField(
-              _phoneController,
-              'Receiver Phone Number',
-              onChanged: (value) {
-                if (value.length >= 11) {
-                  _fetchUserByPhone(value);
-                } else {
-                  setState(() {
-                    _usernameController.clear();
-                    _receiverUid = null;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildTextField(_usernameController, 'User Name', readOnly: true),
-            const SizedBox(height: 10),
-            _buildTextField(_amountController, 'Amount'),
-            const SizedBox(height: 10),
-            _buildTextField(_descriptionController, 'Description (optional)'),
+            _buildField(_phoneController, "Receiver Phone",
+                keyboardType: TextInputType.phone, readOnly: true),
+            const SizedBox(height: 12),
+            _buildField(_usernameController, "Username", readOnly: true),
+            const SizedBox(height: 12),
+            _buildField(_amountController, "Amount",
+                keyboardType: TextInputType.number),
+            const SizedBox(height: 12),
+            _buildField(_descriptionController, "Description (optional)"),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
@@ -253,10 +254,8 @@ class _UserToUserTransferConfirmPageState
                 backgroundColor: Colors.green.shade700,
                 minimumSize: const Size.fromHeight(50),
               ),
-              child: const Text(
-                'Submit Transfer',
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              ),
+              child: const Text("Submit Transfer",
+                  style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
