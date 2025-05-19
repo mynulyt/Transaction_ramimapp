@@ -218,19 +218,6 @@ class _UsersMyUserState extends State<UsersMyUser> {
                                     child: const Text('Payment',
                                         style: TextStyle(color: Colors.green)),
                                   ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      side:
-                                          const BorderSide(color: Colors.green),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                    ),
-                                    onPressed: () {},
-                                    child: const Text('Edit',
-                                        style: TextStyle(color: Colors.green)),
-                                  ),
                                 ],
                               )
                             ],
