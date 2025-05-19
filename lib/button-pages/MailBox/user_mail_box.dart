@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ramimapp/button-pages/MailBox/pin_received.dart';
 import 'package:ramimapp/button-pages/MailBox/user_money_request.dart';
 import 'package:ramimapp/button-pages/MailBox/user_recharge_request.dart';
 import 'package:ramimapp/button-pages/MailBox/user_regular_offer_request.dart';
@@ -10,7 +11,7 @@ class UserMailboxPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mail Box'),
+        title: const Text('Inbox'),
         centerTitle: true,
         backgroundColor: Colors.blue[800],
         elevation: 0,
@@ -27,6 +28,9 @@ class UserMailboxPage extends StatelessWidget {
             const SizedBox(height: 12),
             _buildMailboxButton(context, 'Offer Request',
                 const Color(0xFFE0E0E0), const UserRegularBuyRequestPage()),
+            const SizedBox(height: 12),
+            _buildMailboxButton(context, 'Received Pin',
+                const Color(0xFFE0E0E0), const ReceivedPin()),
           ],
         ),
       ),
