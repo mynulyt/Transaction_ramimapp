@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ramimapp/button-pages/transferconfirm_page.dart';
 
 class UsersMyUser extends StatefulWidget {
   const UsersMyUser({super.key});
@@ -223,7 +224,11 @@ class _UsersMyUserState extends State<UsersMyUser> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      // Add Edit logic
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TransferConfirmPage()));
                                     },
                                     child: const Text('Edit',
                                         style: TextStyle(color: Colors.green)),
