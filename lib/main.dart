@@ -10,6 +10,7 @@ import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/slash_screen.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
 import 'package:ramimapp/button-pages/transferconfirm_page.dart';
+import 'package:ramimapp/button-pages/user_transaction_history.dart';
 import 'package:ramimapp/button-pages/users_my_user.dart';
 
 import 'package:ramimapp/widgets/balance_toggole.dart';
@@ -74,7 +75,7 @@ class _MainScreenState extends State<MainScreen> {
           user != null
               ? buildHomeScreen(user.uid)
               : const Center(child: Text('Please log in.')),
-          const TransactionHistoryPage(),
+          const UserTransactionHistoryPage(),
           const TallyKhataPage(),
         ],
       ),
