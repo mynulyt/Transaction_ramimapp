@@ -13,40 +13,37 @@ class UserTransactionHistoryPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('My Transactions'),
+        title: const Text('Transaction History'),
         centerTitle: true,
         backgroundColor: Colors.pink[700],
         elevation: 0,
       ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: fetchUserTransactions(uid),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: fetchAllTransactions(uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+          final allTransactions = snapshot.data ?? [];
 
-          final transactions = snapshot.data ?? [];
-
-          if (transactions.isEmpty) {
-            return const Center(child: Text('No transactions found.'));
+          if (allTransactions.isEmpty) {
+            return const Center(child: Text('No transaction history found.'));
           }
 
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
-            itemCount: transactions.length,
+            itemCount: allTransactions.length,
             itemBuilder: (context, index) {
-              final data = transactions[index];
+              final data = allTransactions[index];
+
               return _buildTransactionCard(
-                name: data['name'] ?? 'Transaction',
+                name: data['name'] ?? 'Unknown',
                 amount: data['amount'].toString(),
                 date: data['date'] ?? '',
                 type: data['type'] ?? '',
                 tmi: data['tmi'] ?? '',
-                isPositive: data['isPositive'] ?? false,
+                isPositive: data['isPositive'] ?? true,
               );
             },
           );
@@ -112,8 +109,7 @@ class UserTransactionHistoryPage extends StatelessWidget {
                   ],
                   const SizedBox(height: 4),
                   Text(
-                    DateFormat('dd MMM yyyy, hh:mm a')
-                        .format(DateTime.parse(date)),
+                    date,
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
@@ -134,146 +130,144 @@ class UserTransactionHistoryPage extends StatelessWidget {
   }
 
   IconData _getTransactionIcon(String name) {
-    if (name.contains('Request')) return Icons.request_page;
-    if (name.contains('Recharge')) return Icons.phone_android;
-    if (name.contains('Offer')) return Icons.local_offer;
-    if (name.contains('Transfer')) return Icons.send;
-    if (name.contains('Admin')) return Icons.admin_panel_settings;
-    if (name.contains('Income')) return Icons.download;
-    return Icons.swap_horiz;
+    switch (name) {
+      case 'Money Request':
+        return Icons.request_page;
+      case 'Recharge Request':
+        return Icons.phone_android;
+      case 'Offer Buy':
+        return Icons.local_offer;
+      case 'Transfer':
+        return Icons.send;
+      case 'Admin Added':
+        return Icons.add_circle;
+      case 'Income':
+        return Icons.download;
+      default:
+        return Icons.swap_horiz;
+    }
   }
 
-  Stream<List<Map<String, dynamic>>> fetchUserTransactions(String? uid) {
-    if (uid == null) return Stream.value([]);
+  Future<List<Map<String, dynamic>>> fetchAllTransactions(String? uid) async {
+    if (uid == null) return [];
 
-    // Combine all transaction streams
-    return Stream.merge([
-      _getMoneyRequests(uid),
-      _getRechargeRequests(uid),
-      _getOfferPurchases(uid),
-      _getTransfers(uid),
-      _getAdminAdded(uid),
-      _getReceivedMoney(uid),
-    ]).map((transactions) {
-      // Sort by date (newest first)
-      transactions.sort((a, b) =>
-          DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
-      return transactions;
-    });
-  }
+    final List<Map<String, dynamic>> transactions = [];
 
-  Stream<List<Map<String, dynamic>>> _getMoneyRequests(String uid) {
-    return FirebaseFirestore.instance
+    // Money Request
+    final moneySnap = await FirebaseFirestore.instance
         .collection('moneyRequests')
         .where('uid', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              return {
-                'name': 'Money Request',
-                'amount': data['amount']?.toString() ?? '0',
-                'date': formatTimestamp(data['timestamp']),
-                'type': data['method'] ?? 'Payment',
-                'tmi': data['note'] ?? '',
-                'isPositive': false,
-              };
-            }).toList());
-  }
+        .get();
+    for (var doc in moneySnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Money Request',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': data['method'] ?? 'Money',
+        'tmi': data['note'] ?? '', // <-- Add TMI here if exists
+        'isPositive': false,
+      });
+    }
 
-  Stream<List<Map<String, dynamic>>> _getRechargeRequests(String uid) {
-    return FirebaseFirestore.instance
+    // Recharge Request
+    final rechargeSnap = await FirebaseFirestore.instance
         .collection('rechargeRequests')
         .where('uid', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              return {
-                'name': 'Recharge',
-                'amount': data['amount']?.toString() ?? '0',
-                'date': formatTimestamp(data['timestamp']),
-                'type': data['operator'] ?? 'Mobile',
-                'tmi': data['number'] ?? '',
-                'isPositive': false,
-              };
-            }).toList());
-  }
+        .get();
+    for (var doc in rechargeSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Recharge Request',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': data['operator'] ?? 'Recharge',
+        'tmi': data['note'] ?? '', // <-- Add TMI here if exists
+        'isPositive': false,
+      });
+    }
 
-  Stream<List<Map<String, dynamic>>> _getOfferPurchases(String uid) {
-    return FirebaseFirestore.instance
+    // Offer Buy
+    final offerSnap = await FirebaseFirestore.instance
         .collection('requests')
         .doc('regular_buy_requests')
         .collection('items')
         .where('userId', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              return {
-                'name': 'Offer Purchase',
-                'amount': data['price']?.toString() ?? '0',
-                'date': formatTimestamp(data['submittedAt']),
-                'type': data['operator'] ?? 'Offer',
-                'tmi': data['details'] ?? '',
-                'isPositive': false,
-              };
-            }).toList());
-  }
+        .get();
+    for (var doc in offerSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Offer Buy',
+        'amount': data['price'],
+        'date': formatTimestamp(data['submittedAt']),
+        'type': data['operator'] ?? 'Offer',
+        'tmi': data['details'] ?? '', // <-- Add TMI here if exists
+        'isPositive': false,
+      });
+    }
 
-  Stream<List<Map<String, dynamic>>> _getTransfers(String uid) {
-    return FirebaseFirestore.instance
+    // Transfer
+    final transferSnap = await FirebaseFirestore.instance
         .collection('transfer_requests')
         .where('userId', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              return {
-                'name': 'Balance Transfer',
-                'amount': data['amount']?.toString() ?? '0',
-                'date': formatTimestamp(data['timestamp']),
-                'type': 'To ${data['receiverName'] ?? 'User'}',
-                'tmi': data['note'] ?? '',
-                'isPositive': false,
-              };
-            }).toList());
-  }
+        .get();
+    for (var doc in transferSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Transfer',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': 'Balance Transfer',
+        'tmi': data['note'] ?? '',
+        'isPositive': false,
+      });
+    }
 
-  Stream<List<Map<String, dynamic>>> _getAdminAdded(String uid) {
-    return FirebaseFirestore.instance
+    // Admin Added
+    final adminSnap = await FirebaseFirestore.instance
         .collection('admin_added_balance')
         .where('userId', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              return {
-                'name': 'Admin Adjustment',
-                'amount': data['amount']?.toString() ?? '0',
-                'date': formatTimestamp(data['timestamp']),
-                'type': data['note'] ?? 'Balance adjustment',
-                'tmi': '',
-                'isPositive': true,
-              };
-            }).toList());
-  }
+        .get();
+    for (var doc in adminSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Admin Added',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': data['note'] ?? 'Added by Admin',
+        'tmi': '',
+        'isPositive': true,
+      });
+    }
 
-  Stream<List<Map<String, dynamic>>> _getReceivedMoney(String uid) {
-    return FirebaseFirestore.instance
+    // Income / Received
+    final receivedSnap = await FirebaseFirestore.instance
         .collection('received_money')
         .where('userId', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              return {
-                'name': 'Received Money',
-                'amount': data['amount']?.toString() ?? '0',
-                'date': formatTimestamp(data['timestamp']),
-                'type': 'From ${data['senderName'] ?? 'User'}',
-                'tmi': data['note'] ?? '',
-                'isPositive': true,
-              };
-            }).toList());
+        .get();
+    for (var doc in receivedSnap.docs) {
+      final data = doc.data();
+      transactions.add({
+        'name': 'Income',
+        'amount': data['amount'],
+        'date': formatTimestamp(data['timestamp']),
+        'type': data['source'] ?? 'Received',
+        'tmi': '',
+        'isPositive': true,
+      });
+    }
+
+    // Sort all by date (latest first)
+    transactions.sort((a, b) =>
+        DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+
+    return transactions;
   }
 
   String formatTimestamp(Timestamp? timestamp) {
-    if (timestamp == null) return DateTime.now().toIso8601String();
-    return timestamp.toDate().toIso8601String();
+    if (timestamp == null) return '';
+    final dt = timestamp.toDate();
+    return DateFormat('yyyy-MM-ddTHH:mm:ss')
+        .format(dt); // Parseable for sorting
   }
 }
