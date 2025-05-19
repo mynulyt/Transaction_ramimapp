@@ -25,7 +25,7 @@ class _AdminToUserTransferConfirmPageState
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final String _adminUid = 'mynulalam'; // <-- Change to your admin UID
+  final String _adminDocId = 'mynulalam'; // <- Your AdminPanel doc ID
   String? _receiverUid;
 
   @override
@@ -63,27 +63,13 @@ class _AdminToUserTransferConfirmPageState
     }
   }
 
-  Widget _buildField(TextEditingController controller, String label,
-      {TextInputType keyboardType = TextInputType.text,
-      bool readOnly = false}) {
-    return TextField(
-      controller: controller,
-      readOnly: readOnly,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(),
-      ),
-    );
-  }
-
   void _showPinDialog() {
     final TextEditingController pinController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Enter your PIN"),
+        title: const Text("Enter Admin PIN"),
         content: TextField(
           controller: pinController,
           obscureText: true,
@@ -137,28 +123,26 @@ class _AdminToUserTransferConfirmPageState
     }
 
     try {
-      // Get admin data using fixed UID
-      final senderDocRef = _firestore.collection('users').doc(_adminUid);
-      final senderSnapshot = await senderDocRef.get();
+      // Get admin pin from AdminPanel
+      final adminDoc =
+          await _firestore.collection('AdminPanel').doc(_adminDocId).get();
 
-      if (!senderSnapshot.exists) {
+      if (!adminDoc.exists) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Admin not found')),
         );
         return;
       }
 
-      final senderData = senderSnapshot.data();
-      final storedPin = senderData?['pin'];
-
-      if (storedPin == null || storedPin != enteredPin) {
+      final storedPin = adminDoc['pin'];
+      if (storedPin != enteredPin) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Incorrect PIN')),
         );
         return;
       }
 
-      // Receiver data
+      // Get receiver data
       final receiverDocRef = _firestore.collection('users').doc(_receiverUid);
       final receiverSnapshot = await receiverDocRef.get();
       final receiverData = receiverSnapshot.data();
@@ -173,9 +157,9 @@ class _AdminToUserTransferConfirmPageState
       final receiverMain =
           double.tryParse(receiverData['main'].toString()) ?? 0;
 
-      // Admin unlimited balance – skip checking and deduction
+      // Admin balance unlimited – no deduction
 
-      // Run Firestore Transaction
+      // Run transaction
       await _firestore.runTransaction((transaction) async {
         transaction.update(receiverDocRef, {
           'main': (receiverMain + amount).toStringAsFixed(2),
@@ -183,8 +167,8 @@ class _AdminToUserTransferConfirmPageState
 
         final transferRef = _firestore.collection('transfers').doc();
         transaction.set(transferRef, {
-          'senderId': _adminUid,
-          'receiverId': _receiverUid,
+          'sender': _adminDocId,
+          'receiver': _receiverUid,
           'amount': amount,
           'description': description,
           'status': 'completed',
@@ -205,12 +189,26 @@ class _AdminToUserTransferConfirmPageState
     }
   }
 
+  Widget _buildField(TextEditingController controller, String label,
+      {TextInputType keyboardType = TextInputType.text,
+      bool readOnly = false}) {
+    return TextField(
+      controller: controller,
+      readOnly: readOnly,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Confirm Transfer"),
-        backgroundColor: Colors.green.shade700,
+        title: const Text("Admin Transfer"),
+        backgroundColor: Colors.blue.shade800,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -238,10 +236,10 @@ class _AdminToUserTransferConfirmPageState
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade700,
+                backgroundColor: Colors.blue.shade800,
                 minimumSize: const Size.fromHeight(50),
               ),
-              child: const Text("Submit Transfer",
+              child: const Text("Transfer Now",
                   style: TextStyle(color: Colors.white)),
             ),
           ],
