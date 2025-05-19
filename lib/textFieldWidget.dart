@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 Widget buildTextField(
   IconData? icon,
-  String labelText, {
+  String labelText,
+  TextInputType phone, {
   bool obscureText = false,
   bool enabled = true,
   required TextEditingController controller,
