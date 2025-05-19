@@ -209,7 +209,11 @@ class _UsersMyUserState extends State<UsersMyUser> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      // Add Payment logic
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TransferConfirmPage()));
                                     },
                                     child: const Text('Payment',
                                         style: TextStyle(color: Colors.green)),
@@ -223,13 +227,7 @@ class _UsersMyUserState extends State<UsersMyUser> {
                                         borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
-                                    onPressed: () {
-                                      Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  TransferConfirmPage()));
-                                    },
+                                    onPressed: () {},
                                     child: const Text('Edit',
                                         style: TextStyle(color: Colors.green)),
                                   ),
