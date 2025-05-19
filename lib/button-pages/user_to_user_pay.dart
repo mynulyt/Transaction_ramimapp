@@ -2,14 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class TransferConfirmPage extends StatefulWidget {
-  const TransferConfirmPage({super.key});
+class UserToUserTransferConfirmPage extends StatefulWidget {
+  const UserToUserTransferConfirmPage({super.key});
 
   @override
-  _TransferConfirmPageState createState() => _TransferConfirmPageState();
+  _UserToUserTransferConfirmPageState createState() =>
+      _UserToUserTransferConfirmPageState();
 }
 
-class _TransferConfirmPageState extends State<TransferConfirmPage> {
+class _UserToUserTransferConfirmPageState
+    extends State<UserToUserTransferConfirmPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
