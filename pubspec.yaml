@@ -41,6 +41,7 @@ dependencies:
   cloud_firestore: ^5.6.7
   intl: ^0.20.2
   shared_preferences: ^2.5.3
+  async: ^2.11.0
 
 dev_dependencies:
   flutter_test:
