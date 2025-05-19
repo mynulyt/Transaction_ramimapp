@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:ramimapp/button-pages/user_to_user_pay.dart';
 
 class UsersMyUser extends StatefulWidget {
-  const UsersMyUser({super.key});
+  final String currentUserPhone;
+
+  const UsersMyUser({super.key, required this.currentUserPhone});
 
   @override
   _UsersMyUserState createState() => _UsersMyUserState();
@@ -11,7 +13,6 @@ class UsersMyUser extends StatefulWidget {
 
 class _UsersMyUserState extends State<UsersMyUser> {
   String _searchText = '';
-  String _referenceFilter = '';
   final Map<String, bool> _visibleCards = {};
 
   @override
@@ -19,52 +20,47 @@ class _UsersMyUserState extends State<UsersMyUser> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green.shade700,
-        title:
-            const Text('All My Users', style: TextStyle(color: Colors.white)),
+        title: const Text('My User', style: TextStyle(color: Colors.white)),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(110),
+          preferredSize: const Size.fromHeight(60),
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Column(
               children: [
-                _buildSearchField('Search by name', (value) {
+                _buildSearchField('Search by name or phone', (value) {
                   setState(() {
                     _searchText = value.toLowerCase();
                   });
                 }, Icons.search),
-                const SizedBox(height: 8),
-                _buildSearchField('Filter by reference code', (value) {
-                  setState(() {
-                    _referenceFilter = value.trim();
-                  });
-                }, Icons.filter_alt),
               ],
             ),
           ),
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: (_referenceFilter.isEmpty)
-            ? FirebaseFirestore.instance
-                .collection('users')
-                .where('reference', isGreaterThan: '')
-                .snapshots()
-            : FirebaseFirestore.instance
-                .collection('users')
-                .where('reference', isEqualTo: _referenceFilter)
-                .snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .where('reference', isEqualTo: widget.currentUserPhone)
+            .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return const Center(child: Text("Something went wrong"));
-          if (snapshot.connectionState == ConnectionState.waiting)
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
 
           final users = snapshot.data!.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            return data['name']?.toLowerCase().contains(_searchText) ?? false;
+            final name = data['name']?.toLowerCase() ?? '';
+            final phone = data['phone']?.toLowerCase() ?? '';
+            return name.contains(_searchText) || phone.contains(_searchText);
           }).toList();
 
-          if (users.isEmpty) return const Center(child: Text('No users found'));
+          if (users.isEmpty) {
+            return const Center(
+                child: Text('No users found under your reference'));
+          }
 
           return ListView.builder(
             padding: const EdgeInsets.all(12),

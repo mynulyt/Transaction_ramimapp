@@ -229,9 +229,12 @@ class _MainScreenState extends State<MainScreen> {
                   }),
                   buildGridButton("My User", Icons.group, () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const UsersMyUser()));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            UsersMyUser(currentUserPhone: phone),
+                      ),
+                    );
                   }),
                   buildGridButton("Transfer", Icons.sync_alt, () {
                     Navigator.push(
