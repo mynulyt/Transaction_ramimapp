@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ramimapp/AdminPanel/Admin_panel/admin_to_user_pay.dart';
+import 'package:ramimapp/button-pages/user_to_user_pay.dart';
 
 class MyUserMethod extends StatefulWidget {
   const MyUserMethod({super.key});
@@ -203,24 +205,18 @@ class _MyUserMethodState extends State<MyUserMethod> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      // Add Payment logic
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AdminToUserTransferConfirmPage(
+                                            receiverName: user['name'],
+                                            receiverPhone: user['phone'],
+                                          ),
+                                        ),
+                                      );
                                     },
                                     child: const Text('Payment',
-                                        style: TextStyle(color: Colors.green)),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      side:
-                                          const BorderSide(color: Colors.green),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      // Add Edit logic
-                                    },
-                                    child: const Text('Edit',
                                         style: TextStyle(color: Colors.green)),
                                   ),
                                 ],
