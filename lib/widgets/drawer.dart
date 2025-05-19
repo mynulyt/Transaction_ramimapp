@@ -103,15 +103,17 @@ Widget buildDrawer(BuildContext context) {
               title: const Text('Change PIN'),
               onTap: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ChangePin()));
+                    MaterialPageRoute(builder: (context) => const ChangePin()));
               },
             ),
             ListTile(
               leading: const Icon(Icons.lock_open),
               title: const Text('Change Password'),
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ChangePassword()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ChangePassword()));
               },
             ),
             ListTile(

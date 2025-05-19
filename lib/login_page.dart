@@ -63,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
             content: Center(
           child: Text(
             errorMessage,
-            style: TextStyle(color: Colors.red),
+            style: const TextStyle(color: Colors.red),
           ),
         )),
       );

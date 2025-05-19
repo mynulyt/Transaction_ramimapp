@@ -38,7 +38,7 @@ class _ChangePasswordState extends State<ChangePassword> {
     String result = await AuthService().changePassword(newPassword);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Old Password does not match')),
+      const SnackBar(content: Text('Old Password does not match')),
     );
 
     // Optionally, you can clear the fields

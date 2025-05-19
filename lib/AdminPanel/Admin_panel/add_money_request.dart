@@ -170,7 +170,7 @@ class AddMoneyRequestPage extends StatelessWidget {
       String userId, dynamic requestedAmount, bool isConfirm) async {
     final pin = await showDialog<String>(
       context: context,
-      builder: (context) => PinVerificationDialog(),
+      builder: (context) => const PinVerificationDialog(),
     );
 
     if (pin == null) return;
