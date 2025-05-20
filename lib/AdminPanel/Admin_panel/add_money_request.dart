@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddMoneyRequestPage extends StatelessWidget {
-  final String adminId = 'mynulalam';
+  final String adminId = 'mynulalam'; // 🔐 Admin ID
 
-  const AddMoneyRequestPage({super.key}); // 🔐 Admin ID
+  const AddMoneyRequestPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -234,6 +234,43 @@ class AddMoneyRequestPage extends StatelessWidget {
           'balanceAfter': updatedBalance.toStringAsFixed(2),
           'description': 'Money added via admin panel',
         });
+
+        // 🆕 Tallykata Storage (New Addition)
+        final requestData = (await FirebaseFirestore.instance
+                .collection('addMoneyRequests')
+                .doc(docId)
+                .get())
+            .data() as Map<String, dynamic>;
+
+        final tallykataRef =
+            FirebaseFirestore.instance.collection('Tallykata').doc(docId);
+
+        await tallykataRef.set({
+          'requestId': docId,
+          'userId': userId,
+          'userDetails': {
+            'name': userDoc['name'],
+            'phone': userDoc['phone'],
+            'email': userDoc['email'],
+          },
+          'amount': amountToAdd,
+          'method': requestData['method'],
+          'senderNumber': requestData['senderNumber'],
+          'confirmedAt': FieldValue.serverTimestamp(),
+          'status': 'completed',
+        });
+
+        // Store files if they exist
+        if (requestData.containsKey('files')) {
+          final files = requestData['files'] as List;
+          for (int i = 0; i < files.length; i++) {
+            await tallykataRef.collection('TotalReceived').doc('file_$i').set({
+              'fileData': files[i],
+              'order': i,
+              'addedAt': FieldValue.serverTimestamp(),
+            });
+          }
+        }
       }
 
       // ❌ Delete the request
@@ -245,7 +282,7 @@ class AddMoneyRequestPage extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(isConfirm
-              ? "Request approved and balance updated"
+              ? "Request approved and documents stored"
               : "Request cancelled"),
         ),
       );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ramimapp/button-pages/sales_services.dart';
 
 class MoneyRequestPage extends StatelessWidget {
   const MoneyRequestPage({super.key});
@@ -38,212 +39,211 @@ class MoneyRequestPage extends StatelessWidget {
               final data = docs[index].data() as Map<String, dynamic>;
               final docId = docs[index].id;
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey[200],
-                                border: Border.all(
-                                  color: Colors.green[100]!,
-                                  width: 2,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.attach_money,
-                                size: 30,
-                                color: Colors.blueGrey,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    data['name'] ?? 'Unknown',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text('Email: ${data['email'] ?? 'N/A'}'),
-                                  Text('Amount: ${data['amount'] ?? 'N/A'}'),
-                                  Text('Method: ${data['method'] ?? 'N/A'}'),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Number: ',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: SelectableText(
-                                          data['number'] ?? 'N/A',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Text('Note: ${data['description'] ?? ''}'),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildActionButton(
-                                'Accept',
-                                const Color(0xFFC8E6C9),
-                                () async {
-                                  try {
-                                    final uid = data['uid'];
-                                    final requestedAmount = double.tryParse(
-                                            data['amount']?.toString() ??
-                                                '0') ??
-                                        0.0;
-
-                                    final userDoc = await FirebaseFirestore
-                                        .instance
-                                        .collection('users')
-                                        .doc(uid)
-                                        .get();
-
-                                    if (userDoc.exists) {
-                                      final userData = userDoc.data()!;
-                                      final currentBalance = double.tryParse(
-                                              userData['main']?.toString() ??
-                                                  '0') ??
-                                          0.0;
-
-                                      if (currentBalance >= requestedAmount) {
-                                        final newBalance =
-                                            currentBalance - requestedAmount;
-
-                                        // Update user balance
-                                        await FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(uid)
-                                            .update({
-                                          'main': newBalance.toStringAsFixed(2),
-                                        });
-
-                                        // Add to Transaction History collection
-                                        await FirebaseFirestore.instance
-                                            .collection('TransactionHistory')
-                                            .add({
-                                          'uid': uid,
-                                          'name': data['name'] ?? 'Unknown',
-                                          'email': data['email'] ?? '',
-                                          'amount': requestedAmount,
-                                          'method': data['method'] ?? '',
-                                          'number': data['number'] ?? '',
-                                          'description':
-                                              data['description'] ?? '',
-                                          'timestamp':
-                                              FieldValue.serverTimestamp(),
-                                          'type': 'Money Request Accepted',
-                                        });
-
-                                        // Delete the money request document
-                                        await FirebaseFirestore.instance
-                                            .collection('moneyRequests')
-                                            .doc(docId)
-                                            .delete();
-
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'Money request accepted and balance updated.'),
-                                          ),
-                                        );
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'Insufficient balance in user account.'),
-                                          ),
-                                        );
-                                      }
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                            content: Text('User not found.')),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Error: $e')),
-                                    );
-                                  }
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildActionButton(
-                                'Cancel',
-                                const Color(0xFFFFCDD2),
-                                () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('moneyRequests')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Money request cancelled.')),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
+              return _buildRequestCard(context, docId, data);
             },
           );
         },
       ),
+    );
+  }
+
+  Widget _buildRequestCard(
+      BuildContext context, String docId, Map<String, dynamic> data) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey[200],
+                      border: Border.all(
+                        color: Colors.green[100]!,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.attach_money,
+                      size: 30,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data['name'] ?? 'Unknown',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text('Email: ${data['email'] ?? 'N/A'}'),
+                        Text('Amount: ${data['amount'] ?? 'N/A'}'),
+                        Text('Method: ${data['method'] ?? 'N/A'}'),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Number: ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Expanded(
+                              child: SelectableText(
+                                data['number'] ?? 'N/A',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text('Note: ${data['description'] ?? ''}'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActionButton(
+                      'Accept',
+                      const Color(0xFFC8E6C9),
+                      () => _handleAccept(context, docId, data),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionButton(
+                      'Cancel',
+                      const Color(0xFFFFCDD2),
+                      () => _handleCancel(context, docId),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleAccept(
+      BuildContext context, String docId, Map<String, dynamic> data) async {
+    try {
+      final uid = data['uid'];
+      final requestedAmount =
+          double.tryParse(data['amount']?.toString() ?? '0') ?? 0.0;
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data()!;
+        final currentBalance =
+            double.tryParse(userData['main']?.toString() ?? '0') ?? 0.0;
+
+        if (currentBalance >= requestedAmount) {
+          final newBalance = currentBalance - requestedAmount;
+
+          // Update user balance
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(uid)
+              .update({'main': newBalance.toStringAsFixed(2)});
+
+          // Add to Transaction History
+          await FirebaseFirestore.instance
+              .collection('TransactionHistory')
+              .add({
+            'uid': uid,
+            'name': data['name'] ?? 'Unknown',
+            'email': data['email'] ?? '',
+            'amount': requestedAmount,
+            'method': data['method'] ?? '',
+            'number': data['number'] ?? '',
+            'description': data['description'] ?? '',
+            'timestamp': FieldValue.serverTimestamp(),
+            'type': 'Money Request Accepted',
+          });
+
+          // Record in Total Sales
+          await SalesService.recordSale(
+            collectionName: 'moneyRequests',
+            docId: docId,
+            type: 'money_request',
+            requestData: data,
+            amount: requestedAmount,
+            userId: uid,
+            userName: data['name'] ?? 'Unknown',
+            userEmail: data['email'] ?? '',
+            userPhone: data['number'] ?? '',
+          );
+
+          // Delete the request
+          await FirebaseFirestore.instance
+              .collection('moneyRequests')
+              .doc(docId)
+              .delete();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Request accepted and recorded in sales')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Insufficient balance in user account.')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not found.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleCancel(BuildContext context, String docId) async {
+    await FirebaseFirestore.instance
+        .collection('moneyRequests')
+        .doc(docId)
+        .delete();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Money request cancelled.')),
     );
   }
 
