@@ -5,30 +5,6 @@ import 'package:ramimapp/button-pages/sales_services.dart';
 class MoneyRequestPage extends StatelessWidget {
   const MoneyRequestPage({super.key});
 
-  // New function to calculate and store total cash
-  Future<void> _updateTotalCash() async {
-    try {
-      final users = await FirebaseFirestore.instance.collection('users').get();
-      double total = 0;
-
-      for (final doc in users.docs) {
-        final balance =
-            double.tryParse(doc.data()['main']?.toString() ?? '0') ?? 0;
-        total += balance;
-      }
-
-      await FirebaseFirestore.instance
-          .collection('TotalCash')
-          .doc('total')
-          .set({
-        'amount': total,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('Error updating total cash: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,77 +14,39 @@ class MoneyRequestPage extends StatelessWidget {
         backgroundColor: Colors.blue[800],
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          // Total Cash Display
-          StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('TotalCash')
-                .doc('total')
-                .snapshots(),
-            builder: (context, snapshot) {
-              final amount =
-                  (snapshot.data?.data()?['amount'] as num?)?.toDouble() ?? 0;
-              return Card(
-                margin: const EdgeInsets.all(12),
-                child: ListTile(
-                  leading: const Icon(Icons.account_balance_wallet,
-                      color: Colors.green),
-                  title: const Text('Total Cash Available'),
-                  trailing: Text(
-                    '৳${amount.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                ),
-              );
+      body: StreamBuilder<QuerySnapshot>(
+        stream:
+            FirebaseFirestore.instance.collection('moneyRequests').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong.'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final docs = snapshot.data!.docs;
+
+          if (docs.isEmpty) {
+            return const Center(child: Text('No money requests found.'));
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final data = docs[index].data() as Map<String, dynamic>;
+              final docId = docs[index].id;
+
+              return _buildRequestCard(context, docId, data);
             },
-          ),
-          // Requests List
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('moneyRequests')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(child: Text('Something went wrong.'));
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final docs = snapshot.data!.docs;
-
-                if (docs.isEmpty) {
-                  return const Center(child: Text('No money requests found.'));
-                }
-
-                return RefreshIndicator(
-                  onRefresh: _updateTotalCash,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: docs.length,
-                    itemBuilder: (context, index) {
-                      final data = docs[index].data() as Map<String, dynamic>;
-                      final docId = docs[index].id;
-                      return _buildRequestCard(context, docId, data);
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  // All your existing methods remain exactly the same below...
   Widget _buildRequestCard(
       BuildContext context, String docId, Map<String, dynamic> data) {
     return Padding(
@@ -242,9 +180,6 @@ class MoneyRequestPage extends StatelessWidget {
               .collection('users')
               .doc(uid)
               .update({'main': newBalance.toStringAsFixed(2)});
-
-          // Update total cash
-          await _updateTotalCash();
 
           // Add to Transaction History
           await FirebaseFirestore.instance
