@@ -198,7 +198,7 @@ class _AdminToUserTransferConfirmPageState
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
       ),
     );
   }

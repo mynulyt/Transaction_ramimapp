@@ -73,7 +73,7 @@ class _UserToUserTransferConfirmPageState
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
       ),
     );
   }

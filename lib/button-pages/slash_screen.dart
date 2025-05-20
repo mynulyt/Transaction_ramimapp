@@ -4,6 +4,8 @@ import 'package:ramimapp/login_page.dart';
 // Make sure this import matches your file structure
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -12,10 +14,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => LoginPage()),
+        MaterialPageRoute(builder: (_) => const LoginPage()),
       );
     });
   }
@@ -28,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Spacer(),
+            const Spacer(),
             Center(
               child: Column(
                 children: [
@@ -38,8 +40,8 @@ class _SplashScreenState extends State<SplashScreen> {
                     height: 120,
                     fit: BoxFit.cover,
                   ),
-                  SizedBox(height: 20),
-                  Text(
+                  const SizedBox(height: 20),
+                  const Text(
                     'RamimPay',
                     style: TextStyle(
                       fontSize: 26,
@@ -48,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       letterSpacing: 1.5,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     'Your Trusted Transaction Partner',
                     style: TextStyle(
@@ -59,14 +61,14 @@ class _SplashScreenState extends State<SplashScreen> {
                 ],
               ),
             ),
-            Spacer(),
+            const Spacer(),
             Column(
               children: [
-                CircularProgressIndicator(
+                const CircularProgressIndicator(
                   color: Colors.deepPurple,
                   strokeWidth: 2.5,
                 ),
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 Text(
                   'Developed by Mynul Dev',
                   style: TextStyle(
@@ -76,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
       ),
