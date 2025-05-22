@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class TallyKhataPage extends StatelessWidget {
   const TallyKhataPage({super.key});
@@ -63,13 +64,13 @@ class TallyKhataScreen extends StatelessWidget {
         _buildStatItem(Icons.today, 'Today\'s Sales',
             '৳${stats['todaysSales']?.toStringAsFixed(2) ?? '0.00'}'),
         _buildStatItem(Icons.account_balance_wallet, 'Total Transfer',
-            '৳${stats['balance']?.toStringAsFixed(2) ?? '0.00'}'),
+            '৳${stats['totalTransfer']?.toStringAsFixed(2) ?? '0.00'}'),
         _buildStatItem(Icons.account_balance_wallet, 'Today\'s Transfer',
-            '৳${stats['balance']?.toStringAsFixed(2) ?? '0.00'}'),
+            '৳${stats['todaysTransfer']?.toStringAsFixed(2) ?? '0.00'}'),
         _buildStatItem(Icons.payments, 'Total Received',
             '৳${stats['totalReceived']?.toStringAsFixed(2) ?? '0.00'}'),
         _buildStatItem(Icons.payments, 'Today\'s Received',
-            '৳${stats['totalReceived']?.toStringAsFixed(2) ?? '0.00'}'),
+            '৳${stats['todaysReceived']?.toStringAsFixed(2) ?? '0.00'}'),
       ],
     );
   }
@@ -112,6 +113,44 @@ class TallyKhataScreen extends StatelessWidget {
     };
   }
 
+  Future<Map<String, dynamic>> _getTransferData(
+      String userId, bool isAdmin) async {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+
+    QuerySnapshot transferQuery;
+
+    if (isAdmin) {
+      transferQuery =
+          await FirebaseFirestore.instance.collection('Total Transfer').get();
+    } else {
+      transferQuery = await FirebaseFirestore.instance
+          .collection('Total Transfer')
+          .where('senderId', isEqualTo: userId)
+          .get();
+    }
+
+    double totalTransfer = 0;
+    double todaysTransfer = 0;
+
+    for (final doc in transferQuery.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final amount = (data['amount'] as num?)?.toDouble() ?? 0;
+      final timestamp = data['timestamp'] as Timestamp?;
+
+      totalTransfer += amount;
+
+      if (timestamp != null && timestamp.toDate().isAfter(todayStart)) {
+        todaysTransfer += amount;
+      }
+    }
+
+    return {
+      'totalTransfer': totalTransfer,
+      'todaysTransfer': todaysTransfer,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -137,14 +176,27 @@ class TallyKhataScreen extends StatelessWidget {
           final isAdmin = role == 'admin';
 
           return FutureBuilder<Map<String, dynamic>>(
-            future: _getSalesData(uid!, isAdmin),
-            builder: (context, salesSnapshot) {
-              if (salesSnapshot.connectionState == ConnectionState.waiting) {
+            future: Future.wait([
+              _getSalesData(uid!, isAdmin),
+              _getTransferData(uid, isAdmin),
+            ]).then((results) {
+              return {
+                ...results[0], // sales data
+                ...results[1], // transfer data
+              };
+            }),
+            builder: (context, combinedSnapshot) {
+              if (combinedSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final salesData =
-                  salesSnapshot.data ?? {'totalSales': 0, 'todaysSales': 0};
+              final combinedData = combinedSnapshot.data ??
+                  {
+                    'totalSales': 0,
+                    'todaysSales': 0,
+                    'totalTransfer': 0,
+                    'todaysTransfer': 0,
+                  };
 
               Stream statsStream = isAdmin
                   ? FirebaseFirestore.instance
@@ -175,13 +227,12 @@ class TallyKhataScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final userStats =
                             docs[index].data() as Map<String, dynamic>;
-                        final combinedStats = {
+                        final completeStats = {
                           ...userStats,
-                          'totalSales': salesData['totalSales'],
-                          'todaysSales': salesData['todaysSales'],
+                          ...combinedData,
                         };
 
-                        return _buildUserStatsCard(combinedStats);
+                        return _buildUserStatsCard(completeStats);
                       },
                     );
                   } else if (!isAdmin &&
@@ -190,14 +241,13 @@ class TallyKhataScreen extends StatelessWidget {
                     final userStats = (statsSnapshot.data as DocumentSnapshot)
                             .data() as Map<String, dynamic>? ??
                         {};
-                    final combinedStats = {
+                    final completeStats = {
                       ...userStats,
-                      'totalSales': salesData['totalSales'],
-                      'todaysSales': salesData['todaysSales'],
+                      ...combinedData,
                     };
 
                     return SingleChildScrollView(
-                      child: _buildUserStatsCard(combinedStats),
+                      child: _buildUserStatsCard(completeStats),
                     );
                   } else {
                     return const Center(child: Text('Invalid data format.'));
@@ -240,18 +290,18 @@ class TallyKhataScreen extends StatelessWidget {
           const Divider(thickness: 1),
           _buildStatsGrid(stats),
           const SizedBox(height: 16),
-          _buildRecentSalesList(stats['userId']?.toString()),
+          _buildRecentTransactionsList(stats['userId']?.toString()),
         ],
       ),
     );
   }
 
-  Widget _buildRecentSalesList(String? userId) {
+  Widget _buildRecentTransactionsList(String? userId) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Recent Sales',
+          'Recent Transactions',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -261,13 +311,13 @@ class TallyKhataScreen extends StatelessWidget {
         StreamBuilder<QuerySnapshot>(
           stream: userId != null
               ? FirebaseFirestore.instance
-                  .collection('TotalSales')
-                  .where('userId', isEqualTo: userId)
+                  .collection('Total Transfer')
+                  .where('senderId', isEqualTo: userId)
                   .orderBy('timestamp', descending: true)
                   .limit(5)
                   .snapshots()
               : FirebaseFirestore.instance
-                  .collection('TotalSales')
+                  .collection('Total Transfer')
                   .orderBy('timestamp', descending: true)
                   .limit(5)
                   .snapshots(),
@@ -279,7 +329,7 @@ class TallyKhataScreen extends StatelessWidget {
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return const Padding(
                 padding: EdgeInsets.all(8.0),
-                child: Text('No recent sales found.'),
+                child: Text('No recent transactions found.'),
               );
             }
 
@@ -288,10 +338,11 @@ class TallyKhataScreen extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
-                final sale = snapshot.data!.docs[index];
-                final data = sale.data() as Map<String, dynamic>;
+                final transaction = snapshot.data!.docs[index];
+                final data = transaction.data() as Map<String, dynamic>;
                 final amount = data['amount']?.toString() ?? '0';
-                final type = data['type']?.toString() ?? 'Sale';
+                final receiverName =
+                    data['receiverName']?.toString() ?? 'Unknown';
                 final date = (data['timestamp'] as Timestamp?)?.toDate() ??
                     DateTime.now();
 
@@ -299,14 +350,14 @@ class TallyKhataScreen extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
                     backgroundColor: Colors.indigo[100],
-                    child: Icon(
-                      _getSaleIcon(type),
+                    child: const Icon(
+                      Icons.account_balance_wallet,
                       color: Colors.indigo,
                     ),
                   ),
-                  title: Text('$type - ৳$amount'),
+                  title: Text('Transfer to $receiverName - ৳$amount'),
                   subtitle: Text(
-                    '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}',
+                    DateFormat('dd/MM/yyyy HH:mm').format(date),
                   ),
                   trailing: const Icon(Icons.chevron_right),
                 );
@@ -316,18 +367,5 @@ class TallyKhataScreen extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  IconData _getSaleIcon(String type) {
-    switch (type) {
-      case 'Sent TK':
-        return Icons.attach_money;
-      case 'Recharge':
-        return Icons.phone_android;
-      case 'Regular Offer':
-        return Icons.local_offer;
-      default:
-        return Icons.shopping_cart;
-    }
   }
 }

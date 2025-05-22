@@ -173,6 +173,20 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
           'status': 'completed',
           'timestamp': FieldValue.serverTimestamp(),
         });
+
+        // Add to Total Transfer collection
+        final totalTransferRef = _firestore.collection('Total Transfer').doc();
+        transaction.set(totalTransferRef, {
+          'senderId': senderUid,
+          'senderName': senderData?['name'] ?? 'Unknown',
+          'receiverId': _receiverUid,
+          'receiverName': receiverData['name'] ?? 'Unknown',
+          'amount': amount,
+          'description': description,
+          'status': 'completed',
+          'timestamp': FieldValue.serverTimestamp(),
+          'type': 'Money Transfer',
+        });
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
