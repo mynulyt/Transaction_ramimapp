@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ramimapp/button-pages/MailBox/pin_received.dart';
+import 'package:ramimapp/button-pages/MailBox/user_add_money_cencel.dart';
 import 'package:ramimapp/button-pages/MailBox/user_money_request.dart';
 import 'package:ramimapp/button-pages/MailBox/user_recharge_request.dart';
 import 'package:ramimapp/button-pages/MailBox/user_regular_offer_request.dart';
@@ -31,6 +32,9 @@ class UserMailboxPage extends StatelessWidget {
             const SizedBox(height: 12),
             _buildMailboxButton(context, 'Received Pin',
                 const Color(0xFFE0E0E0), const ReceivedPin()),
+            const SizedBox(height: 12),
+            _buildMailboxButton(context, 'Add Money Request',
+                const Color(0xFFE0E0E0), const AddMoneyRequestPageCancle()),
           ],
         ),
       ),

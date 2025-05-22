@@ -7,9 +7,7 @@ class AdminLoginPage extends StatelessWidget {
 
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   final TextEditingController UseerNameController = TextEditingController();
-  final TextEditingController PasswordController = TextEditingController();
   final TextEditingController PinController = TextEditingController();
-  final TextEditingController PhoneController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -47,25 +45,11 @@ class AdminLoginPage extends StatelessWidget {
                         errorText: "Please Enter User Name",
                       ),
                       const SizedBox(height: 40.0),
-                      // Password
-                      buildInputField(
-                        controller: PasswordController,
-                        hintText: "Password",
-                        errorText: "Please Enter Password",
-                      ),
-                      const SizedBox(height: 40.0),
                       // PIN
                       buildInputField(
                         controller: PinController,
                         hintText: "PIN",
                         errorText: "Please Enter Your Pin",
-                      ),
-                      const SizedBox(height: 40.0),
-                      // Phone
-                      buildInputField(
-                        controller: PhoneController,
-                        hintText: "Phone",
-                        errorText: "Please Enter Phone Number",
                       ),
                       const SizedBox(height: 40.0),
                       GestureDetector(
@@ -140,9 +124,7 @@ class AdminLoginPage extends StatelessWidget {
 
   void LoginAdmin(BuildContext context) async {
     final String inputId = UseerNameController.text.trim().toLowerCase();
-    final String inputPassword = PasswordController.text.trim();
     final String inputPin = PinController.text.trim();
-    final String inputPhone = PhoneController.text.trim();
 
     try {
       final DocumentSnapshot adminDoc = await FirebaseFirestore.instance
@@ -157,12 +139,8 @@ class AdminLoginPage extends StatelessWidget {
 
       final data = adminDoc.data() as Map<String, dynamic>;
 
-      if (data['password'] != inputPassword) {
-        showSnack(context, "Your password is wrong!");
-      } else if (data['pin'] != inputPin) {
+      if (data['pin'] != inputPin) {
         showSnack(context, "Your PIN is wrong!");
-      } else if (data['phone'] != inputPhone) {
-        showSnack(context, "Your phone number is wrong!");
       } else {
         Navigator.pushReplacement(
           context,
