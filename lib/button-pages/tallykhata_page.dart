@@ -118,22 +118,29 @@ class TallyKhataScreen extends StatelessWidget {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
 
-    QuerySnapshot transferQuery;
+    // Get sent transfers (as sender)
+    QuerySnapshot sentTransferQuery = isAdmin
+        ? await FirebaseFirestore.instance.collection('Total Transfer').get()
+        : await FirebaseFirestore.instance
+            .collection('Total Transfer')
+            .where('senderId', isEqualTo: userId)
+            .get();
 
-    if (isAdmin) {
-      transferQuery =
-          await FirebaseFirestore.instance.collection('Total Transfer').get();
-    } else {
-      transferQuery = await FirebaseFirestore.instance
-          .collection('Total Transfer')
-          .where('senderId', isEqualTo: userId)
-          .get();
-    }
+    // Get received transfers (as receiver)
+    QuerySnapshot receivedTransferQuery = isAdmin
+        ? await FirebaseFirestore.instance.collection('Total Transfer').get()
+        : await FirebaseFirestore.instance
+            .collection('Total Transfer')
+            .where('receiverId', isEqualTo: userId)
+            .get();
 
     double totalTransfer = 0;
     double todaysTransfer = 0;
+    double totalReceived = 0;
+    double todaysReceived = 0;
 
-    for (final doc in transferQuery.docs) {
+    // Calculate sent amounts
+    for (final doc in sentTransferQuery.docs) {
       final data = doc.data() as Map<String, dynamic>;
       final amount = (data['amount'] as num?)?.toDouble() ?? 0;
       final timestamp = data['timestamp'] as Timestamp?;
@@ -145,9 +152,24 @@ class TallyKhataScreen extends StatelessWidget {
       }
     }
 
+    // Calculate received amounts
+    for (final doc in receivedTransferQuery.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final amount = (data['amount'] as num?)?.toDouble() ?? 0;
+      final timestamp = data['timestamp'] as Timestamp?;
+
+      totalReceived += amount;
+
+      if (timestamp != null && timestamp.toDate().isAfter(todayStart)) {
+        todaysReceived += amount;
+      }
+    }
+
     return {
       'totalTransfer': totalTransfer,
       'todaysTransfer': todaysTransfer,
+      'totalReceived': totalReceived,
+      'todaysReceived': todaysReceived,
     };
   }
 
@@ -196,6 +218,8 @@ class TallyKhataScreen extends StatelessWidget {
                     'todaysSales': 0,
                     'totalTransfer': 0,
                     'todaysTransfer': 0,
+                    'totalReceived': 0,
+                    'todaysReceived': 0,
                   };
 
               Stream statsStream = isAdmin
@@ -321,45 +345,94 @@ class TallyKhataScreen extends StatelessWidget {
                   .orderBy('timestamp', descending: true)
                   .limit(5)
                   .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+          builder: (context, sentSnapshot) {
+            if (sentSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text('No recent transactions found.'),
-              );
-            }
+            return StreamBuilder<QuerySnapshot>(
+              stream: userId != null
+                  ? FirebaseFirestore.instance
+                      .collection('Total Transfer')
+                      .where('receiverId', isEqualTo: userId)
+                      .orderBy('timestamp', descending: true)
+                      .limit(5)
+                      .snapshots()
+                  : FirebaseFirestore.instance
+                      .collection('Total Transfer')
+                      .orderBy('timestamp', descending: true)
+                      .limit(5)
+                      .snapshots(),
+              builder: (context, receivedSnapshot) {
+                if (receivedSnapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final transaction = snapshot.data!.docs[index];
-                final data = transaction.data() as Map<String, dynamic>;
-                final amount = data['amount']?.toString() ?? '0';
-                final receiverName =
-                    data['receiverName']?.toString() ?? 'Unknown';
-                final date = (data['timestamp'] as Timestamp?)?.toDate() ??
-                    DateTime.now();
+                final sentTransactions = sentSnapshot.data?.docs ?? [];
+                final receivedTransactions = receivedSnapshot.data?.docs ?? [];
 
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.indigo[100],
-                    child: const Icon(
-                      Icons.account_balance_wallet,
-                      color: Colors.indigo,
-                    ),
-                  ),
-                  title: Text('Transfer to $receiverName - ৳$amount'),
-                  subtitle: Text(
-                    DateFormat('dd/MM/yyyy HH:mm').format(date),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
+                if (sentTransactions.isEmpty && receivedTransactions.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text('No recent transactions found.'),
+                  );
+                }
+
+                // Combine and sort both sent and received transactions by timestamp
+                final allTransactions = [
+                  ...sentTransactions
+                      .map((doc) => {'type': 'sent', 'data': doc.data()}),
+                  ...receivedTransactions
+                      .map((doc) => {'type': 'received', 'data': doc.data()}),
+                ]..sort((a, b) {
+                    final aTimestamp = (a['data']
+                        as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                    final bTimestamp = (b['data']
+                        as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                    return (bTimestamp ?? Timestamp.now())
+                        .compareTo(aTimestamp ?? Timestamp.now());
+                  });
+
+                // Take only the last 5 combined transactions
+                final recentTransactions = allTransactions.take(5).toList();
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: recentTransactions.length,
+                  itemBuilder: (context, index) {
+                    final transaction = recentTransactions[index];
+                    final data = transaction['data'] as Map<String, dynamic>;
+                    final isReceived = transaction['type'] == 'received';
+                    final amount = data['amount']?.toString() ?? '0';
+                    final otherPartyName = isReceived
+                        ? data['senderName']?.toString() ?? 'Unknown'
+                        : data['receiverName']?.toString() ?? 'Unknown';
+                    final date = (data['timestamp'] as Timestamp?)?.toDate() ??
+                        DateTime.now();
+
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor:
+                            isReceived ? Colors.green[100] : Colors.indigo[100],
+                        child: Icon(
+                          isReceived ? Icons.call_received : Icons.call_made,
+                          color: isReceived ? Colors.green : Colors.indigo,
+                        ),
+                      ),
+                      title: Text(
+                        isReceived
+                            ? 'Received from $otherPartyName - ৳$amount'
+                            : 'Transfer to $otherPartyName - ৳$amount',
+                      ),
+                      subtitle: Text(
+                        DateFormat('dd/MM/yyyy HH:mm').format(date),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                    );
+                  },
                 );
               },
             );
