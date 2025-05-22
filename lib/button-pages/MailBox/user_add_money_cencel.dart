@@ -1,21 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class AddMoneyRequestPageCancle extends StatelessWidget {
-  final String adminId = 'mynulalam'; // 🔐 Admin ID
-
+class AddMoneyRequestPageCancle extends StatefulWidget {
   const AddMoneyRequestPageCancle({super.key});
 
   @override
+  State<AddMoneyRequestPageCancle> createState() =>
+      _AddMoneyRequestPageCancleState();
+}
+
+class _AddMoneyRequestPageCancleState extends State<AddMoneyRequestPageCancle> {
+  final String adminId = 'mynulalam';
+  String? currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    currentUserId = user?.uid;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (currentUserId == null) {
+      return const Scaffold(
+        body: Center(child: Text("User not logged in")),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Money Requests (Cancel Only)'),
+        title: const Text('My Add Money Requests'),
         backgroundColor: Colors.indigo,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('addMoneyRequests')
+            .where('userId', isEqualTo: currentUserId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -164,7 +186,6 @@ class AddMoneyRequestPageCancle extends StatelessWidget {
         return;
       }
 
-      // ❌ Delete the request
       await FirebaseFirestore.instance
           .collection('addMoneyRequests')
           .doc(docId)

@@ -191,6 +191,22 @@ class AddMoneyRequestPage extends StatelessWidget {
         return;
       }
 
+      // If confirming, get admin message
+      String? adminMessage;
+      if (isConfirm) {
+        adminMessage = await showDialog<String>(
+          context: context,
+          builder: (context) => AdminMessageDialog(),
+        );
+
+        if (adminMessage == null || adminMessage.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please enter a message")),
+          );
+          return;
+        }
+      }
+
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -233,6 +249,7 @@ class AddMoneyRequestPage extends StatelessWidget {
           'timestamp': FieldValue.serverTimestamp(),
           'balanceAfter': updatedBalance.toStringAsFixed(2),
           'description': 'Money added via admin panel',
+          'adminMessage': adminMessage, // Add admin message to transaction
         });
 
         // 🆕 Tallykata Storage (New Addition)
@@ -258,6 +275,7 @@ class AddMoneyRequestPage extends StatelessWidget {
           'senderNumber': requestData['senderNumber'],
           'confirmedAt': FieldValue.serverTimestamp(),
           'status': 'completed',
+          'adminMessage': adminMessage, // Store admin message
         });
 
         // Store files if they exist
@@ -271,6 +289,17 @@ class AddMoneyRequestPage extends StatelessWidget {
             });
           }
         }
+      } else {
+        // For cancel action, store the cancellation
+        final tallykataRef =
+            FirebaseFirestore.instance.collection('Tallykata').doc(docId);
+
+        await tallykataRef.set({
+          'requestId': docId,
+          'userId': userId,
+          'status': 'cancelled',
+          'cancelledAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
       }
 
       // ❌ Delete the request
@@ -337,6 +366,55 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
             }
           },
           child: const Text('Confirm'),
+        ),
+      ],
+    );
+  }
+}
+
+class AdminMessageDialog extends StatefulWidget {
+  const AdminMessageDialog({super.key});
+
+  @override
+  State<AdminMessageDialog> createState() => _AdminMessageDialogState();
+}
+
+class _AdminMessageDialogState extends State<AdminMessageDialog> {
+  final TextEditingController _messageController = TextEditingController();
+  bool _showError = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add Message'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _messageController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'Enter your message for the user',
+              errorText: _showError ? 'Message is required' : null,
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_messageController.text.trim().isEmpty) {
+              setState(() => _showError = true);
+            } else {
+              Navigator.pop(context, _messageController.text.trim());
+            }
+          },
+          child: const Text('Submit'),
         ),
       ],
     );
