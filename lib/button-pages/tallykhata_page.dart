@@ -108,101 +108,6 @@ class TallyKhataScreen extends StatelessWidget {
     };
   }
 
-  Widget _buildTotalCashList(String? userId, bool isAdmin) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Money Requests',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        StreamBuilder<QuerySnapshot>(
-          stream: isAdmin
-              ? FirebaseFirestore.instance
-                  .collection('Total Cash')
-                  .orderBy('timestamp', descending: true)
-                  .snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Total Cash')
-                  .where('uid', isEqualTo: userId)
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text('No money requests found.'),
-              );
-            }
-
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final cashData = snapshot.data!.docs[index];
-                final data = cashData.data() as Map<String, dynamic>;
-                final amount = data['amount']?.toString() ?? '0';
-                final method = data['method']?.toString() ?? 'N/A';
-                final date = (data['timestamp'] as Timestamp?)?.toDate() ??
-                    DateTime.now();
-                final status = data['status']?.toString() ?? 'Completed';
-                final description = data['description']?.toString() ?? '';
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.indigo[100],
-                      child: const Icon(
-                        Icons.attach_money,
-                        color: Colors.indigo,
-                      ),
-                    ),
-                    title: Text('৳$amount - $method'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(description),
-                        Text(
-                          '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    trailing: Chip(
-                      label: Text(
-                        status,
-                        style: TextStyle(
-                          color: status == 'Completed'
-                              ? Colors.green
-                              : Colors.orange,
-                        ),
-                      ),
-                      backgroundColor: status == 'Completed'
-                          ? Colors.green[50]
-                          : Colors.orange[50],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -272,7 +177,7 @@ class TallyKhataScreen extends StatelessWidget {
                           'todaysSales': salesData['todaysSales'],
                         };
 
-                        return _buildUserStatsCard(combinedStats, isAdmin);
+                        return _buildUserStatsCard(combinedStats);
                       },
                     );
                   } else if (!isAdmin &&
@@ -288,7 +193,7 @@ class TallyKhataScreen extends StatelessWidget {
                     };
 
                     return SingleChildScrollView(
-                      child: _buildUserStatsCard(combinedStats, isAdmin),
+                      child: _buildUserStatsCard(combinedStats),
                     );
                   } else {
                     return const Center(child: Text('Invalid data format.'));
@@ -302,9 +207,7 @@ class TallyKhataScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUserStatsCard(Map<String, dynamic> stats, bool isAdmin) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-
+  Widget _buildUserStatsCard(Map<String, dynamic> stats) {
     return Container(
       margin: const EdgeInsets.all(12),
       padding: const EdgeInsets.all(16),
@@ -334,8 +237,6 @@ class TallyKhataScreen extends StatelessWidget {
           _buildStatsGrid(stats),
           const SizedBox(height: 16),
           _buildRecentSalesList(stats['userId']?.toString()),
-          const SizedBox(height: 16),
-          _buildTotalCashList(uid, isAdmin),
         ],
       ),
     );
