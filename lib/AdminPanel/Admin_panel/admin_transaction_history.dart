@@ -38,6 +38,47 @@ class _AdminTransactionHistoryPageState
     }
   }
 
+  // Delete all transactions with confirmation
+  Future<void> deleteAllTransactions() async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Confirm Deletion"),
+        content:
+            const Text("Are you sure you want to delete all transactions?"),
+        actions: [
+          TextButton(
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Delete All"),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      try {
+        final snapshot =
+            await _firestore.collection('TransactionHistory').get();
+        for (QueryDocumentSnapshot doc in snapshot.docs) {
+          await _firestore
+              .collection('TransactionHistory')
+              .doc(doc.id)
+              .delete();
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("All transactions deleted.")),
+        );
+      } catch (e) {
+        debugPrint("Error deleting all transactions: $e");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,6 +93,13 @@ class _AdminTransactionHistoryPageState
         ),
         backgroundColor: Colors.orangeAccent,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_forever),
+            tooltip: "Delete All",
+            onPressed: deleteAllTransactions,
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
