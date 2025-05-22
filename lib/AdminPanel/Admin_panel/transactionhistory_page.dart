@@ -80,6 +80,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
               final amount = data['amount']?.toString() ?? '0';
               final method = data['method'] ?? 'N/A';
               final status = data['status'] ?? 'N/A';
+              final number = data['number'] ?? 'N/A';
               final timestamp = data['timestamp'] as Timestamp?;
               final formattedDate = timestamp != null
                   ? DateFormat('dd MMM yyyy, hh:mm a')
@@ -108,7 +109,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text('$method\n$formattedDate'),
+                  subtitle: Text(
+                    '$method\n$number\n$formattedDate',
+                    style: const TextStyle(height: 1.4),
+                  ),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

@@ -20,7 +20,7 @@ class _AdminTransactionHistoryPageState
     deleteOldTransactions();
   }
 
-  // ✅ Delete old transactions older than 1 month
+  // Delete transactions older than 1 month
   Future<void> deleteOldTransactions() async {
     final DateTime oneMonthAgo =
         DateTime.now().subtract(const Duration(days: 30));
@@ -78,10 +78,15 @@ class _AdminTransactionHistoryPageState
             itemBuilder: (context, index) {
               final data = transactions[index].data() as Map<String, dynamic>;
 
-              final name = data['name'] ?? 'Admin';
+              final userName = data['userName'] ?? data['name'] ?? 'Admin';
               final amount = data['amount']?.toString() ?? '0';
-              final method = data['method'] ?? 'N/A';
+              final method = data['method'] ?? '';
               final status = data['status'] ?? 'N/A';
+              final action = data['action'] ?? '';
+              final rechargeNumber = data['rechargeNumber'] ?? '';
+              final operator = data['operator'] ?? '';
+              final type = data['type'] ?? '';
+              final number = data['number'] ?? '';
               final timestamp = data['timestamp'] as Timestamp?;
               final formattedDate = timestamp != null
                   ? DateFormat('dd MMM yyyy, hh:mm a')
@@ -101,16 +106,34 @@ class _AdminTransactionHistoryPageState
                     radius: 24,
                     backgroundColor: Colors.orangeAccent,
                     child: Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      userName.isNotEmpty ? userName[0].toUpperCase() : '?',
                       style: const TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
                   title: Text(
-                    name,
+                    userName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text('$method\n$formattedDate'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (type.isNotEmpty && type != 'N/A') Text('Type: $type'),
+                      if (action.isNotEmpty && action != 'N/A')
+                        Text('Action: $action'),
+                      if (rechargeNumber.isNotEmpty && rechargeNumber != 'N/A')
+                        Text('Recharge: $rechargeNumber'),
+                      if (operator.isNotEmpty && operator != 'N/A')
+                        Text('Operator: $operator'),
+                      if (number.isNotEmpty && number != 'N/A')
+                        Text('Number: $number'),
+                      if (method.isNotEmpty && method != 'N/A')
+                        Text('Method: $method'),
+                      if (formattedDate != 'Unknown date')
+                        Text('Date: $formattedDate'),
+                    ],
+                  ),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
