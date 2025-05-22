@@ -209,6 +209,20 @@ class MoneyRequestPage extends StatelessWidget {
             userPhone: data['number'] ?? '',
           );
 
+          // Create entry in Total Cash collection
+          await FirebaseFirestore.instance.collection('Total Cash').add({
+            'uid': uid,
+            'name': data['name'] ?? 'Unknown',
+            'email': data['email'] ?? '',
+            'amount': requestedAmount,
+            'method': data['method'] ?? '',
+            'number': data['number'] ?? '',
+            'description': data['description'] ?? '',
+            'timestamp': FieldValue.serverTimestamp(),
+            'type': 'Money Request',
+            'status': 'Completed',
+          });
+
           // Delete the request
           await FirebaseFirestore.instance
               .collection('moneyRequests')
@@ -217,7 +231,7 @@ class MoneyRequestPage extends StatelessWidget {
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('Request accepted and recorded in sales')),
+                content: Text('Request accepted and recorded in Total Cash')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
