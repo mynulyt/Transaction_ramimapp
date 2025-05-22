@@ -68,7 +68,10 @@ class _TakaSendPageState extends State<TakaSendPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
               ),
-              child: const Text("Submit"),
+              child: const Text(
+                "Submit",
+                style: TextStyle(color: Colors.white),
+              ),
               onPressed: () async {
                 await _verifyPinAndSendRequest();
               },
