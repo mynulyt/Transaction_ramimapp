@@ -68,7 +68,10 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
               ),
-              child: const Text("Submit"),
+              child: const Text(
+                "Submit",
+                style: TextStyle(color: Colors.white),
+              ),
               onPressed: () async {
                 await _verifyPinAndSendRecharge();
               },
@@ -214,7 +217,10 @@ class _MoneyRechargePageState extends State<MoneyRechargePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
               ),
-              child: const Text("Confirm"),
+              child: const Text(
+                "Confirm",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
