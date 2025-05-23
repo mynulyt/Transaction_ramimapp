@@ -31,7 +31,7 @@ class UserMailboxPage extends StatelessWidget {
                 const Color(0xFFE0E0E0), const UserRegularBuyRequestPage()),
             const SizedBox(height: 12),
             _buildMailboxButton(context, 'Received Pin',
-                const Color(0xFFE0E0E0), const ReceivedPin()),
+                const Color(0xFFE0E0E0), const UserPinInfoPage()),
             const SizedBox(height: 12),
             _buildMailboxButton(context, 'Add Money Request',
                 const Color(0xFFE0E0E0), const AddMoneyRequestPageCancle()),

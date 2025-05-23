@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddMoneyRequestPage extends StatelessWidget {
-  final String adminId = 'mynulalam';
+  final String adminId = 'mynulalam'; // 🔐 Admin ID
 
   const AddMoneyRequestPage({super.key});
 
@@ -168,17 +168,15 @@ class AddMoneyRequestPage extends StatelessWidget {
 
   Future<void> _handleRequestAction(BuildContext context, String docId,
       String userId, dynamic requestedAmount, bool isConfirm) async {
-    final result = await showDialog<Map<String, String>>(
+    final pin = await showDialog<String>(
       context: context,
       builder: (context) => const PinVerificationDialog(),
     );
 
-    if (result == null) return;
-
-    final pin = result['pin'];
-    final inputNumber = result['number'];
+    if (pin == null) return;
 
     try {
+      // 🔐 Admin PIN verify
       final adminSnapshot = await FirebaseFirestore.instance
           .collection('AdminPanel')
           .doc(adminId)
@@ -218,6 +216,7 @@ class AddMoneyRequestPage extends StatelessWidget {
 
         double updatedBalance = currentBalance + amountToAdd;
 
+        // ✅ Update user's balance
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
@@ -225,6 +224,7 @@ class AddMoneyRequestPage extends StatelessWidget {
           'main': updatedBalance.toStringAsFixed(2),
         });
 
+        // ✅ Add transaction entry
         await FirebaseFirestore.instance.collection('TransactionHistory').add({
           'userId': userId,
           'userName': userDoc['name'] ?? 'Unknown',
@@ -235,6 +235,7 @@ class AddMoneyRequestPage extends StatelessWidget {
           'description': 'Money added via admin panel',
         });
 
+        // 🆕 Tallykata Storage (New Addition)
         final requestData = (await FirebaseFirestore.instance
                 .collection('addMoneyRequests')
                 .doc(docId)
@@ -259,6 +260,7 @@ class AddMoneyRequestPage extends StatelessWidget {
           'status': 'completed',
         });
 
+        // Store files if they exist
         if (requestData.containsKey('files')) {
           final files = requestData['files'] as List;
           for (int i = 0; i < files.length; i++) {
@@ -269,17 +271,9 @@ class AddMoneyRequestPage extends StatelessWidget {
             });
           }
         }
-
-        // 🆕 Store additional input in new collection
-        await FirebaseFirestore.instance.collection('AdminPinLogs').add({
-          'adminId': adminId,
-          'userId': userId,
-          'userName': userDoc['name'],
-          'inputNumber': inputNumber,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
       }
 
+      // ❌ Delete the request
       await FirebaseFirestore.instance
           .collection('addMoneyRequests')
           .doc(docId)
@@ -309,13 +303,12 @@ class PinVerificationDialog extends StatefulWidget {
 
 class _PinVerificationDialogState extends State<PinVerificationDialog> {
   final TextEditingController _pinController = TextEditingController();
-  final TextEditingController _numberController = TextEditingController();
   bool _showError = false;
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Admin Confirmation'),
+      title: const Text('Enter Admin PIN'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -326,14 +319,6 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
             decoration: InputDecoration(
               hintText: 'Enter your PIN',
               errorText: _showError ? 'PIN is required' : null,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _numberController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              hintText: 'Enter extra number',
             ),
           ),
         ],
@@ -348,10 +333,7 @@ class _PinVerificationDialogState extends State<PinVerificationDialog> {
             if (_pinController.text.trim().isEmpty) {
               setState(() => _showError = true);
             } else {
-              Navigator.pop(context, {
-                'pin': _pinController.text.trim(),
-                'number': _numberController.text.trim(),
-              });
+              Navigator.pop(context, _pinController.text.trim());
             }
           },
           child: const Text('Confirm'),

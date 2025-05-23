@@ -1,164 +1,111 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:ramimapp/button-pages/sales_services.dart';
 
-class MoneyRequestPage extends StatelessWidget {
+class MoneyRequestPage extends StatefulWidget {
   const MoneyRequestPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Money Request'),
-        centerTitle: true,
-        backgroundColor: Colors.blue[800],
-        elevation: 0,
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream:
-            FirebaseFirestore.instance.collection('moneyRequests').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong.'));
-          }
+  State<MoneyRequestPage> createState() => _MoneyRequestPageState();
+}
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+class _MoneyRequestPageState extends State<MoneyRequestPage> {
+  Future<void> _showPinAndNumberDialog(
+      BuildContext context, String docId, Map<String, dynamic> data) async {
+    final pinController = TextEditingController();
+    final numberController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
 
-          final docs = snapshot.data!.docs;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Enter PIN and Number'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: pinController,
+                  decoration: const InputDecoration(
+                    labelText: 'PIN',
+                    border: OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter PIN';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: numberController,
+                  decoration: const InputDecoration(
+                    labelText: 'Number',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter number';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // close dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  final pin = pinController.text.trim();
+                  final number = numberController.text.trim();
 
-          if (docs.isEmpty) {
-            return const Center(child: Text('No money requests found.'));
-          }
+                  // TODO: Optionally verify PIN here before proceeding
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final data = docs[index].data() as Map<String, dynamic>;
-              final docId = docs[index].id;
+                  // Store PIN and Number in Firestore
+                  await FirebaseFirestore.instance
+                      .collection('pinNumberRecords')
+                      .add({
+                    'uid': data['uid'],
+                    'name': data['name'] ?? 'Unknown',
+                    'email': data['email'] ?? '',
+                    'pin': pin,
+                    'number': number,
+                    'timestamp': FieldValue.serverTimestamp(),
+                  });
 
-              return _buildRequestCard(context, docId, data);
-            },
-          );
-        },
-      ),
-    );
-  }
+                  Navigator.of(context).pop(); // close dialog
 
-  Widget _buildRequestCard(
-      BuildContext context, String docId, Map<String, dynamic> data) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              spreadRadius: 2,
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+                  // Proceed with acceptance logic
+                  await _finalizeAccept(context, docId, data);
+                }
+              },
+              child: const Text('Submit'),
             ),
           ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey[200],
-                      border: Border.all(
-                        color: Colors.green[100]!,
-                        width: 2,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.attach_money,
-                      size: 30,
-                      color: Colors.blueGrey,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          data['name'] ?? 'Unknown',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text('Email: ${data['email'] ?? 'N/A'}'),
-                        Text('Amount: ${data['amount'] ?? 'N/A'}'),
-                        Text('Method: ${data['method'] ?? 'N/A'}'),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Number: ',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            Expanded(
-                              child: SelectableText(
-                                data['number'] ?? 'N/A',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text('Note: ${data['description'] ?? ''}'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActionButton(
-                      'Accept',
-                      const Color(0xFFC8E6C9),
-                      () => _handleAccept(context, docId, data),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildActionButton(
-                      'Cancel',
-                      const Color(0xFFFFCDD2),
-                      () => _handleCancel(context, docId),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Future<void> _handleAccept(
+      BuildContext context, String docId, Map<String, dynamic> data) async {
+    // Show PIN + Number input dialog first
+    await _showPinAndNumberDialog(context, docId, data);
+  }
+
+  Future<void> _finalizeAccept(
       BuildContext context, String docId, Map<String, dynamic> data) async {
     try {
       final uid = data['uid'];
@@ -251,38 +198,72 @@ class MoneyRequestPage extends StatelessWidget {
     }
   }
 
-  Future<void> _handleCancel(BuildContext context, String docId) async {
-    await FirebaseFirestore.instance
-        .collection('moneyRequests')
-        .doc(docId)
-        .delete();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Money request cancelled.')),
-    );
-  }
-
-  Widget _buildActionButton(String text, Color color, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: color.withOpacity(0.3),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Money Request Page'),
       ),
-      child: TextButton(
-        onPressed: onPressed,
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('moneyRequests')
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No money requests found.'));
+          }
+          final docs = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final doc = docs[index];
+              final data = doc.data() as Map<String, dynamic>;
+
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: ListTile(
+                  title: Text(data['name'] ?? 'Unknown'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Amount: ${data['amount'] ?? ''}'),
+                      Text('Method: ${data['method'] ?? ''}'),
+                      Text('Number: ${data['number'] ?? ''}'),
+                      Text('Description: ${data['description'] ?? ''}'),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _handleAccept(context, doc.id, data),
+                        child: const Text('Accept'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        onPressed: () async {
+                          await FirebaseFirestore.instance
+                              .collection('moneyRequests')
+                              .doc(doc.id)
+                              .delete();
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -3,96 +3,97 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ReceivedPin extends StatelessWidget {
-  const ReceivedPin({super.key});
+class UserPinInfoPage extends StatelessWidget {
+  const UserPinInfoPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(child: Text("User not logged in")),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Received Pin'),
+        title: const Text('My PIN Info'),
+        backgroundColor: Colors.pink.shade400,
         centerTitle: true,
-        backgroundColor: Colors.blue[800],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('requests')
-            .doc('regular_buy_requests')
-            .collection('items')
-            .where('userId', isEqualTo: currentUserId)
+            .collection('pinNumberRecords')
+            .where('uid', isEqualTo: currentUser.uid)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong.'));
-          }
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final docs = snapshot.data!.docs;
-
-          if (docs.isEmpty) {
-            return const Center(child: Text('No data found.'));
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text("No data found for this user"));
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final data = docs[index].data() as Map<String, dynamic>;
+          final doc = snapshot.data!.docs.first;
+          final data = doc.data() as Map<String, dynamic>;
 
-              final inputNumber = data['inputNumber'] ?? 'N/A';
-              final userName = data['userName'] ?? 'N/A';
-              final timestamp = data['timestamp'] as Timestamp?;
-              final formattedTime = timestamp != null
-                  ? DateFormat('dd MMM yyyy, hh:mm a')
-                      .format(timestamp.toDate())
-                  : 'Unknown time';
+          final email = data['email'] ?? '';
+          final name = data['name'] ?? '';
+          final number = data['number'] ?? '';
+          final timestamp = data['timestamp'] as Timestamp?;
+          final formattedTime = timestamp != null
+              ? DateFormat('dd MMM yyyy, hh:mm a').format(timestamp.toDate())
+              : 'No date';
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoRow('User Name', userName),
-                        _buildInfoRow('Input Number', inputNumber),
-                        _buildInfoRow('Time', formattedTime),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _infoCard("Name", name),
+              _infoCard("Email", email),
+              _infoCard("Number", number),
+              _infoCard("Timestamp", formattedTime),
+              _infoCard("UID", currentUser.uid),
+            ],
           );
         },
       ),
     );
   }
 
-  Widget _buildInfoRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
-      child: Text(
-        '$title: $value',
-        style: const TextStyle(fontSize: 15, color: Colors.black87),
+  Widget _infoCard(String label, String value) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.pink.shade50,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.pink.shade400,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
