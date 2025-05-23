@@ -225,37 +225,127 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
               final data = doc.data() as Map<String, dynamic>;
 
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: ListTile(
-                  title: Text(data['name'] ?? 'Unknown'),
-                  subtitle: Column(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Amount: ${data['amount'] ?? ''}'),
-                      Text('Method: ${data['method'] ?? ''}'),
-                      Text('Number: ${data['number'] ?? ''}'),
-                      Text('Description: ${data['description'] ?? ''}'),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () => _handleAccept(context, doc.id, data),
-                        child: const Text('Accept'),
+                      // Header: Name & Buttons row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              data['name'] ?? 'Unknown',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green[600],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () =>
+                                    _handleAccept(context, doc.id, data),
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  child: Text('Accept'),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red[600],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('moneyRequests')
+                                      .doc(doc.id)
+                                      .delete();
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  child: Text('Cancel'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        onPressed: () async {
-                          await FirebaseFirestore.instance
-                              .collection('moneyRequests')
-                              .doc(doc.id)
-                              .delete();
-                        },
-                        child: const Text('Cancel'),
+                      const SizedBox(height: 16),
+
+                      // Info rows with icons
+                      Row(
+                        children: [
+                          const Icon(Icons.attach_money,
+                              size: 18, color: Colors.grey),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Amount: ${data['amount'] ?? ''}',
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black87),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.payment,
+                              size: 18, color: Colors.grey),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Method: ${data['method'] ?? ''}',
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black87),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.phone, size: 18, color: Colors.grey),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Number: ${data['number'] ?? ''}',
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black87),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.description,
+                              size: 18, color: Colors.grey),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Description: ${data['description'] ?? ''}',
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.black87),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
