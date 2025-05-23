@@ -1,50 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ramimapp/button-pages/sales_services.dart';
 
-class RegularBuyRequestPage extends StatefulWidget {
+class RegularBuyRequestPage extends StatelessWidget {
   const RegularBuyRequestPage({super.key});
 
   @override
-  State<RegularBuyRequestPage> createState() => _RegularBuyRequestPageState();
-}
-
-class _RegularBuyRequestPageState extends State<RegularBuyRequestPage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  late String currentUserId;
-  late String currentUserEmail;
-
-  @override
-  void initState() {
-    super.initState();
-    final currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      currentUserId = currentUser.uid;
-      currentUserEmail = currentUser.email ?? '';
-    } else {
-      currentUserId = '';
-      currentUserEmail = '';
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (currentUserId.isEmpty && currentUserEmail.isEmpty) {
-      // No logged-in user, show message
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Regular Offer Buy Requests'),
-          centerTitle: true,
-          backgroundColor: Colors.blue[800],
-        ),
-        body: const Center(
-          child: Text('You need to be logged in to see your requests.'),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Regular Offer Buy Requests'),
@@ -66,26 +28,16 @@ class _RegularBuyRequestPageState extends State<RegularBuyRequestPage> {
           }
 
           final docs = snapshot.data!.docs;
-
-          // Filter docs where uid or userEmail matches current user
-          final filteredDocs = docs.where((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final uid = data['uid']?.toString() ?? '';
-            final email = data['userEmail']?.toString() ?? '';
-            return uid == currentUserId || email == currentUserEmail;
-          }).toList();
-
-          if (filteredDocs.isEmpty) {
-            return const Center(
-                child: Text('No regular buy requests found for you.'));
+          if (docs.isEmpty) {
+            return const Center(child: Text('No regular buy requests found.'));
           }
 
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
-            itemCount: filteredDocs.length,
+            itemCount: docs.length,
             itemBuilder: (context, index) {
-              final data = filteredDocs[index].data() as Map<String, dynamic>;
-              final docId = filteredDocs[index].id;
+              final data = docs[index].data() as Map<String, dynamic>;
+              final docId = docs[index].id;
               return _buildRequestCard(context, docId, data);
             },
           );
@@ -190,15 +142,7 @@ class _RegularBuyRequestPageState extends State<RegularBuyRequestPage> {
                           email),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildActionButton(
-                      'Edit',
-                      Colors.blue[100]!,
-                      () => _showUpdateDialog(context, docId, data),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: _buildActionButton(
                       'Cancel',
@@ -348,106 +292,34 @@ class _RegularBuyRequestPageState extends State<RegularBuyRequestPage> {
     );
   }
 
-  // New method: Show dialog to update price (or other fields)
-  void _showUpdateDialog(
-      BuildContext context, String docId, Map<String, dynamic> data) {
-    final TextEditingController priceController =
-        TextEditingController(text: data['price']?.toString() ?? '');
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Update Price'),
-          content: TextField(
-            controller: priceController,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'New Price'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final newPrice = priceController.text.trim();
-                if (newPrice.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Price cannot be empty')),
-                  );
-                  return;
-                }
-                final priceNum = double.tryParse(newPrice);
-                if (priceNum == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Invalid price value')),
-                  );
-                  return;
-                }
-
-                try {
-                  await FirebaseFirestore.instance
-                      .collection('requests')
-                      .doc('regular_buy_requests')
-                      .collection('items')
-                      .doc(docId)
-                      .update({'price': priceNum.toStringAsFixed(2)});
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Price updated successfully')),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Update failed: $e')),
-                  );
-                }
-              },
-              child: const Text('Update'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String title, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-        ],
+      child: Text(
+        '$title: $value',
+        style: const TextStyle(fontSize: 14, color: Colors.grey),
       ),
     );
   }
 
   Widget _buildActionButton(String text, Color color, VoidCallback onPressed) {
-    return SizedBox(
-      height: 40,
-      child: ElevatedButton(
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: color.withOpacity(0.5),
+      ),
+      child: TextButton(
         onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
         child: Text(
           text,
-          style: const TextStyle(color: Colors.black),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
         ),
       ),
     );
