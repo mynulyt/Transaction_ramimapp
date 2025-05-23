@@ -235,61 +235,15 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header: Name & Buttons row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              data['name'] ?? 'Unknown',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green[600],
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: () =>
-                                    _handleAccept(context, doc.id, data),
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  child: Text('Accept'),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red[600],
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('moneyRequests')
-                                      .doc(doc.id)
-                                      .delete();
-                                },
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  child: Text('Cancel'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      // Name at top
+                      Text(
+                        data['name'] ?? 'Unknown',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 16),
 
@@ -343,6 +297,49 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
                               'Description: ${data['description'] ?? ''}',
                               style: const TextStyle(
                                   fontSize: 16, color: Colors.black87),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Buttons below, centered horizontally
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green[600],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () =>
+                                _handleAccept(context, doc.id, data),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                              child: Text('Accept'),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red[600],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () async {
+                              await FirebaseFirestore.instance
+                                  .collection('moneyRequests')
+                                  .doc(doc.id)
+                                  .delete();
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                              child: Text('Cancel'),
                             ),
                           ),
                         ],
