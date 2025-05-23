@@ -122,7 +122,8 @@ class _AddMoneyRequestPageCancleState extends State<AddMoneyRequestPageCancle> {
                           ElevatedButton.icon(
                             icon: const Icon(Icons.cancel_outlined),
                             label: const Text('Cancel',
-                                style: TextStyle(fontSize: 22)),
+                                style: TextStyle(
+                                    fontSize: 22, color: Colors.white)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
                               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -164,28 +165,8 @@ class _AddMoneyRequestPageCancleState extends State<AddMoneyRequestPageCancle> {
   }
 
   Future<void> _handleCancelRequest(BuildContext context, String docId) async {
-    final pin = await showDialog<String>(
-      context: context,
-      builder: (context) => const PinVerificationDialog(),
-    );
-
-    if (pin == null) return;
-
     try {
-      final adminSnapshot = await FirebaseFirestore.instance
-          .collection('AdminPanel')
-          .doc(adminId)
-          .get();
-
-      final adminPin = adminSnapshot['pin'] ?? '';
-
-      if (pin != adminPin) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Incorrect PIN")),
-        );
-        return;
-      }
-
+      // Directly delete the request without PIN verification
       await FirebaseFirestore.instance
           .collection('addMoneyRequests')
           .doc(docId)
@@ -199,54 +180,5 @@ class _AddMoneyRequestPageCancleState extends State<AddMoneyRequestPageCancle> {
         SnackBar(content: Text("Error: $e")),
       );
     }
-  }
-}
-
-class PinVerificationDialog extends StatefulWidget {
-  const PinVerificationDialog({super.key});
-
-  @override
-  State<PinVerificationDialog> createState() => _PinVerificationDialogState();
-}
-
-class _PinVerificationDialogState extends State<PinVerificationDialog> {
-  final TextEditingController _pinController = TextEditingController();
-  bool _showError = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Enter Admin PIN'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _pinController,
-            obscureText: true,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              hintText: 'Enter your PIN',
-              errorText: _showError ? 'PIN is required' : null,
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (_pinController.text.trim().isEmpty) {
-              setState(() => _showError = true);
-            } else {
-              Navigator.pop(context, _pinController.text.trim());
-            }
-          },
-          child: const Text('Confirm'),
-        ),
-      ],
-    );
   }
 }

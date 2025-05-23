@@ -19,7 +19,7 @@ class UserPinInfoPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My PIN Info'),
-        backgroundColor: Colors.pink.shade400,
+        backgroundColor: Colors.indigo,
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -87,7 +87,7 @@ class UserPinInfoPage extends StatelessWidget {
             "$label: ",
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.pink.shade400,
+              color: Colors.indigo,
               fontSize: 15,
             ),
           ),
