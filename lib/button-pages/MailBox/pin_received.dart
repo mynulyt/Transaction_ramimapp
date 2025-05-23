@@ -1,13 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ReceivedPin extends StatelessWidget {
   const ReceivedPin({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
       appBar: AppBar(
@@ -20,7 +21,7 @@ class ReceivedPin extends StatelessWidget {
             .collection('requests')
             .doc('regular_buy_requests')
             .collection('items')
-            .where('userEmail', isEqualTo: currentUserEmail)
+            .where('userId', isEqualTo: currentUserId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -42,7 +43,14 @@ class ReceivedPin extends StatelessWidget {
             itemCount: docs.length,
             itemBuilder: (context, index) {
               final data = docs[index].data() as Map<String, dynamic>;
-              final extraNumber = data['extraNumber'] ?? 'N/A';
+
+              final inputNumber = data['inputNumber'] ?? 'N/A';
+              final userName = data['userName'] ?? 'N/A';
+              final timestamp = data['timestamp'] as Timestamp?;
+              final formattedTime = timestamp != null
+                  ? DateFormat('dd MMM yyyy, hh:mm a')
+                      .format(timestamp.toDate())
+                  : 'Unknown time';
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -61,20 +69,12 @@ class ReceivedPin extends StatelessWidget {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.phone_android, color: Colors.blue),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Extra Number: $extraNumber',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
+                        _buildInfoRow('User Name', userName),
+                        _buildInfoRow('Input Number', inputNumber),
+                        _buildInfoRow('Time', formattedTime),
                       ],
                     ),
                   ),
@@ -83,6 +83,16 @@ class ReceivedPin extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Text(
+        '$title: $value',
+        style: const TextStyle(fontSize: 15, color: Colors.black87),
       ),
     );
   }
