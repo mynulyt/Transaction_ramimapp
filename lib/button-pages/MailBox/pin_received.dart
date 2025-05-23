@@ -50,11 +50,25 @@ class UserPinInfoPage extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _infoCard("Name", name),
-              _infoCard("Email", email),
-              _infoCard("Number", number),
-              _infoCard("Timestamp", formattedTime),
-              _infoCard("UID", currentUser.uid),
+              Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                color: Colors.pink.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _infoRow("Name", name),
+                      _infoRow("Email", email),
+                      _infoRow("PIN Number", number),
+                      _infoRow("Timestamp", formattedTime),
+                    ],
+                  ),
+                ),
+              ),
             ],
           );
         },
@@ -62,38 +76,27 @@ class UserPinInfoPage extends StatelessWidget {
     );
   }
 
-  Widget _infoCard(String label, String value) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-        decoration: BoxDecoration(
-          color: Colors.pink.shade50,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.pink.shade400,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "$label: ",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.pink.shade400,
+              fontSize: 15,
             ),
-            const SizedBox(height: 8),
-            Text(
+          ),
+          Expanded(
+            child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
-              ),
+              style: const TextStyle(fontSize: 15, color: Colors.black87),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
