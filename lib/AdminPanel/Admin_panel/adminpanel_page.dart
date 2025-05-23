@@ -5,7 +5,6 @@ import 'package:ramimapp/AdminPanel/Admin_panel/mailbox_page.dart';
 import 'package:ramimapp/AdminPanel/Admin_panel/submitoffer_page.dart';
 import 'package:ramimapp/button-pages/adduser_page.dart';
 import 'package:ramimapp/button-pages/myusermethod.dart';
-import 'package:ramimapp/button-pages/tallykhata_page.dart';
 
 class AdminPanelPage extends StatelessWidget {
   const AdminPanelPage({super.key});
@@ -100,8 +99,8 @@ class AdminPanelPage extends StatelessWidget {
                       Colors.blue, const MyUserMethod()),
                   _buildGridButton(context, Icons.person_add, 'Add User',
                       Colors.teal, const AddUserPage()),
-                  _buildGridButton(context, Icons.account_balance_wallet,
-                      'Tally Khata', Colors.orange, const TallyKhataPage()),
+                  // _buildGridButton(context, Icons.account_balance_wallet,
+                  //     'Tally Khata', Colors.orange, const TallyKhataPage()),
                   _buildGridButton(
                       context,
                       Icons.history,
