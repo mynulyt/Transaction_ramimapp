@@ -202,7 +202,10 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Money Request Page'),
+        title: const Text(
+          'Money Request Page',
+        ),
+        backgroundColor: Colors.indigo,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -319,7 +322,10 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
                             child: const Padding(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 24, vertical: 12),
-                              child: Text('Accept'),
+                              child: Text(
+                                'Accept',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 20),
@@ -339,7 +345,10 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
                             child: const Padding(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 24, vertical: 12),
-                              child: Text('Cancel'),
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ],
