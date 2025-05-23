@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 
 class UserRechargeRequestPage extends StatelessWidget {
@@ -7,6 +8,14 @@ class UserRechargeRequestPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(child: Text("User not logged in.")),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Recharge Request'),
@@ -27,7 +36,14 @@ class UserRechargeRequestPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final docs = snapshot.data!.docs;
+          final allDocs = snapshot.data!.docs;
+
+          // 🔍 Filter requests by current user's email or uid
+          final docs = allDocs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['email'] == currentUser.email ||
+                data['uid'] == currentUser.uid;
+          }).toList();
 
           if (docs.isEmpty) {
             return const Center(child: Text('No recharge requests found.'));
@@ -95,8 +111,6 @@ class UserRechargeRequestPage extends StatelessWidget {
                                   Text('Name: ${data['name'] ?? 'N/A'}'),
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Email: ${data['email'] ?? 'N/A'}'),
-
-                                  // ✅ Copyable number
                                   Row(
                                     children: [
                                       const Text('Number: ',
@@ -119,7 +133,6 @@ class UserRechargeRequestPage extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-
                                   Text('Note: ${data['description'] ?? 'N/A'}'),
                                 ],
                               ),

@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class UserMoneyRequestPage extends StatelessWidget {
   const UserMoneyRequestPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(child: Text("User not logged in")),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Money Request'),
@@ -14,8 +23,10 @@ class UserMoneyRequestPage extends StatelessWidget {
         elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream:
-            FirebaseFirestore.instance.collection('moneyRequests').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('moneyRequests')
+            .where('email', isEqualTo: currentUser.email) // 🔑 filter by email
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
@@ -94,8 +105,6 @@ class UserMoneyRequestPage extends StatelessWidget {
                                   Text('Amount: ${data['amount'] ?? 'N/A'}'),
                                   Text('Method: ${data['method'] ?? 'N/A'}'),
                                   Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Number: ',
@@ -123,13 +132,6 @@ class UserMoneyRequestPage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        const Row(
-                          children: [
-                            // Empty spacer instead of Accept button to keep layout unchanged
-                            Expanded(child: SizedBox()),
-                            SizedBox(width: 12),
-                          ],
-                        ),
                         Row(
                           children: [
                             const SizedBox(width: 12),
