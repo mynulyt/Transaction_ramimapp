@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class ReceivedPin extends StatelessWidget {
   const ReceivedPin({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Received Pin'),
@@ -17,6 +20,7 @@ class ReceivedPin extends StatelessWidget {
             .collection('requests')
             .doc('regular_buy_requests')
             .collection('items')
+            .where('userEmail', isEqualTo: currentUserEmail)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -30,7 +34,7 @@ class ReceivedPin extends StatelessWidget {
           final docs = snapshot.data!.docs;
 
           if (docs.isEmpty) {
-            return const Center(child: Text('No regular buy requests found.'));
+            return const Center(child: Text('No data found.'));
           }
 
           return ListView.builder(
@@ -38,18 +42,7 @@ class ReceivedPin extends StatelessWidget {
             itemCount: docs.length,
             itemBuilder: (context, index) {
               final data = docs[index].data() as Map<String, dynamic>;
-              final docId = docs[index].id;
-
-              String operator = data['operator'] ?? 'Unknown';
-              String price = data['price'] ?? 'N/A';
-              String name = data['userName'] ?? 'N/A';
-              String internet = data['internet'] ?? 'N/A';
-              String minutes = data['minutes'] ?? 'N/A';
-              String sms = data['sms'] ?? 'N/A';
-              String term = data['term'] ?? 'N/A';
-              String offerType = data['offerType'] ?? 'N/A';
-              String number = data['rechargeNumber'] ?? 'N/A';
-              String email = data['userEmail'] ?? 'N/A';
+              final extraNumber = data['extraNumber'] ?? 'N/A';
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -68,75 +61,19 @@ class ReceivedPin extends StatelessWidget {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(
-                          '$operator Offer',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInfoRow('Internet', internet),
-                        _buildInfoRow('Minutes', minutes),
-                        _buildInfoRow('SMS', sms),
-                        _buildInfoRow('Price', '$price ৳'),
-                        _buildInfoRow('Name', name),
-
-                        // 🔥 Copyable Recharge Number
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Recharge Number: ',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Expanded(
-                                child: SelectableText(
-                                  number,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        _buildInfoRow('Email', email),
-                        _buildInfoRow('Term', term),
-                        _buildInfoRow('Offer Type', offerType),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildActionButton(
-                                'Cancel',
-                                Colors.red[100]!,
-                                () async {
-                                  await FirebaseFirestore.instance
-                                      .collection('requests')
-                                      .doc('regular_buy_requests')
-                                      .collection('items')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Offer cancelled.'),
-                                    ),
-                                  );
-                                },
-                              ),
+                        const Icon(Icons.phone_android, color: Colors.blue),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Extra Number: $extraNumber',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
@@ -146,39 +83,6 @@ class ReceivedPin extends StatelessWidget {
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
-      child: Text(
-        '$title: $value',
-        style: const TextStyle(fontSize: 14, color: Colors.grey),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String text, Color color, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: color.withOpacity(0.5),
-      ),
-      child: TextButton(
-        onPressed: onPressed,
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
       ),
     );
   }
