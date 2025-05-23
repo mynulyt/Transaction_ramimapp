@@ -25,7 +25,7 @@ class UserPinInfoPage extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('pinNumberRecords')
-            .where('uid', isEqualTo: currentUser.uid)
+            .where('email', isEqualTo: currentUser.email)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -36,21 +36,22 @@ class UserPinInfoPage extends StatelessWidget {
             return const Center(child: Text("No data found for this user"));
           }
 
-          final doc = snapshot.data!.docs.first;
-          final data = doc.data() as Map<String, dynamic>;
-
-          final email = data['email'] ?? '';
-          final name = data['name'] ?? '';
-          final number = data['number'] ?? '';
-          final timestamp = data['timestamp'] as Timestamp?;
-          final formattedTime = timestamp != null
-              ? DateFormat('dd MMM yyyy, hh:mm a').format(timestamp.toDate())
-              : 'No date';
-
           return ListView(
             padding: const EdgeInsets.all(16),
-            children: [
-              Card(
+            children: snapshot.data!.docs.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+
+              final email = data['email'] ?? '';
+              final name = data['name'] ?? '';
+              final number = data['number'] ?? '';
+              final timestamp = data['timestamp'] as Timestamp?;
+              final formattedTime = timestamp != null
+                  ? DateFormat('dd MMM yyyy, hh:mm a')
+                      .format(timestamp.toDate())
+                  : 'No date';
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 20),
                 elevation: 6,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -68,8 +69,8 @@ class UserPinInfoPage extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
+              );
+            }).toList(),
           );
         },
       ),
