@@ -3,13 +3,53 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
-class UserTransactionHistoryPage extends StatelessWidget {
+class UserTransactionHistoryPage extends StatefulWidget {
   const UserTransactionHistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+  State<UserTransactionHistoryPage> createState() =>
+      _UserTransactionHistoryPageState();
+}
 
+class _UserTransactionHistoryPageState
+    extends State<UserTransactionHistoryPage> {
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<Map<String, dynamic>> _transactions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTransactions();
+  }
+
+  Future<void> _fetchTransactions() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
+      final transactions = await fetchAllTransactions(user);
+      setState(() {
+        _transactions = transactions;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to load transactions: ${e.toString()}';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -17,35 +57,44 @@ class UserTransactionHistoryPage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.pink[700],
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _fetchTransactions,
+          ),
+        ],
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: fetchAllTransactions(uid),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: _buildTransactionList(),
+    );
+  }
 
-          final allTransactions = snapshot.data ?? [];
+  Widget _buildTransactionList() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-          if (allTransactions.isEmpty) {
-            return const Center(child: Text('No transaction history found.'));
-          }
+    if (_errorMessage != null) {
+      return Center(child: Text(_errorMessage!));
+    }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: allTransactions.length,
-            itemBuilder: (context, index) {
-              final data = allTransactions[index];
+    if (_transactions.isEmpty) {
+      return const Center(child: Text('No transactions found.'));
+    }
 
-              return _buildTransactionCard(
-                name: data['name'] ?? 'Unknown',
-                amount: data['amount'].toString(),
-                date: data['date'] ?? '',
-                type: data['type'] ?? '',
-                tmi: data['tmi'] ?? '',
-                isPositive: data['isPositive'] ?? true,
-              );
-            },
+    return RefreshIndicator(
+      onRefresh: _fetchTransactions,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: _transactions.length,
+        itemBuilder: (context, index) {
+          final data = _transactions[index];
+          return _buildTransactionCard(
+            name: data['name'] ?? 'Unknown',
+            amount: data['amount'].toString(),
+            date: data['date'] ?? '',
+            type: data['type'] ?? '',
+            tmi: data['tmi'] ?? '',
+            isPositive: data['isPositive'] ?? true,
           );
         },
       ),
@@ -60,6 +109,11 @@ class UserTransactionHistoryPage extends StatelessWidget {
     required String tmi,
     required bool isPositive,
   }) {
+    final parsedDate = DateTime.tryParse(date);
+    final formattedDate = parsedDate != null
+        ? DateFormat('MMM dd, yyyy - hh:mm a').format(parsedDate)
+        : date;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -109,7 +163,7 @@ class UserTransactionHistoryPage extends StatelessWidget {
                   ],
                   const SizedBox(height: 4),
                   Text(
-                    date,
+                    formattedDate,
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
@@ -148,126 +202,149 @@ class UserTransactionHistoryPage extends StatelessWidget {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchAllTransactions(String? uid) async {
-    if (uid == null) return [];
-
+  Future<List<Map<String, dynamic>>> fetchAllTransactions(User user) async {
     final List<Map<String, dynamic>> transactions = [];
+    final uid = user.uid;
+    final email = user.email;
+    final phone = user.phoneNumber;
 
-    // Money Request
-    final moneySnap = await FirebaseFirestore.instance
-        .collection('moneyRequests')
-        .where('uid', isEqualTo: uid)
-        .get();
-    for (var doc in moneySnap.docs) {
-      final data = doc.data();
+    // Helper function to add transaction with common fields
+    void addTransaction({
+      required String name,
+      required dynamic amount,
+      required dynamic timestamp,
+      String type = '',
+      String tmi = '',
+      bool isPositive = false,
+    }) {
       transactions.add({
-        'name': 'Money Request',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': data['method'] ?? 'Money',
-        'tmi': data['note'] ?? '', // <-- Add TMI here if exists
-        'isPositive': false,
+        'name': name,
+        'amount': amount is String ? double.parse(amount) : amount,
+        'date': formatTimestamp(timestamp is Timestamp ? timestamp : null),
+        'type': type,
+        'tmi': tmi,
+        'isPositive': isPositive,
       });
     }
 
-    // Recharge Request
-    final rechargeSnap = await FirebaseFirestore.instance
-        .collection('rechargeRequests')
-        .where('uid', isEqualTo: uid)
-        .get();
-    for (var doc in rechargeSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Recharge Request',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': data['operator'] ?? 'Recharge',
-        'tmi': data['note'] ?? '', // <-- Add TMI here if exists
-        'isPositive': false,
-      });
+    try {
+      // Money Request
+      final moneyQuery = FirebaseFirestore.instance
+          .collection('moneyRequests')
+          .where('uid', isEqualTo: uid);
+      final moneySnap = await moneyQuery.get();
+      for (var doc in moneySnap.docs) {
+        final data = doc.data();
+        addTransaction(
+          name: 'Money Request',
+          amount: data['amount'],
+          timestamp: data['timestamp'],
+          type: data['method'] ?? 'Money',
+          tmi: data['note'] ?? '',
+          isPositive: false,
+        );
+      }
+
+      // Recharge Request
+      final rechargeQuery = FirebaseFirestore.instance
+          .collection('rechargeRequests')
+          .where('uid', isEqualTo: uid);
+      final rechargeSnap = await rechargeQuery.get();
+      for (var doc in rechargeSnap.docs) {
+        final data = doc.data();
+        addTransaction(
+          name: 'Recharge Request',
+          amount: data['amount'],
+          timestamp: data['timestamp'],
+          type: data['operator'] ?? 'Recharge',
+          tmi: data['note'] ?? '',
+          isPositive: false,
+        );
+      }
+
+      // Offer Buy
+      final offerQuery = FirebaseFirestore.instance
+          .collection('requests')
+          .doc('regular_buy_requests')
+          .collection('items')
+          .where('userId', isEqualTo: uid);
+      final offerSnap = await offerQuery.get();
+      for (var doc in offerSnap.docs) {
+        final data = doc.data();
+        addTransaction(
+          name: 'Offer Buy',
+          amount: data['price'],
+          timestamp: data['submittedAt'],
+          type: data['operator'] ?? 'Offer',
+          tmi: data['details'] ?? '',
+          isPositive: false,
+        );
+      }
+
+      // Transfer
+      final transferQuery = FirebaseFirestore.instance
+          .collection('transfer_requests')
+          .where('userId', isEqualTo: uid);
+      final transferSnap = await transferQuery.get();
+      for (var doc in transferSnap.docs) {
+        final data = doc.data();
+        addTransaction(
+          name: 'Transfer',
+          amount: data['amount'],
+          timestamp: data['timestamp'],
+          type: 'Balance Transfer',
+          tmi: data['note'] ?? '',
+          isPositive: false,
+        );
+      }
+
+      // Admin Added
+      final adminQuery = FirebaseFirestore.instance
+          .collection('admin_added_balance')
+          .where('userId', isEqualTo: uid);
+      final adminSnap = await adminQuery.get();
+      for (var doc in adminSnap.docs) {
+        final data = doc.data();
+        addTransaction(
+          name: 'Admin Added',
+          amount: data['amount'],
+          timestamp: data['timestamp'],
+          type: data['note'] ?? 'Added by Admin',
+          tmi: '',
+          isPositive: true,
+        );
+      }
+
+      // Income / Received
+      final receivedQuery = FirebaseFirestore.instance
+          .collection('received_money')
+          .where('userId', isEqualTo: uid);
+      final receivedSnap = await receivedQuery.get();
+      for (var doc in receivedSnap.docs) {
+        final data = doc.data();
+        addTransaction(
+          name: 'Income',
+          amount: data['amount'],
+          timestamp: data['timestamp'],
+          type: data['source'] ?? 'Received',
+          tmi: '',
+          isPositive: true,
+        );
+      }
+
+      // Sort all by date (latest first)
+      transactions.sort((a, b) =>
+          DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+
+      return transactions;
+    } catch (e) {
+      throw Exception('Failed to fetch transactions: $e');
     }
-
-    // Offer Buy
-    final offerSnap = await FirebaseFirestore.instance
-        .collection('requests')
-        .doc('regular_buy_requests')
-        .collection('items')
-        .where('userId', isEqualTo: uid)
-        .get();
-    for (var doc in offerSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Offer Buy',
-        'amount': data['price'],
-        'date': formatTimestamp(data['submittedAt']),
-        'type': data['operator'] ?? 'Offer',
-        'tmi': data['details'] ?? '', // <-- Add TMI here if exists
-        'isPositive': false,
-      });
-    }
-
-    // Transfer
-    final transferSnap = await FirebaseFirestore.instance
-        .collection('transfer_requests')
-        .where('userId', isEqualTo: uid)
-        .get();
-    for (var doc in transferSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Transfer',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': 'Balance Transfer',
-        'tmi': data['note'] ?? '',
-        'isPositive': false,
-      });
-    }
-
-    // Admin Added
-    final adminSnap = await FirebaseFirestore.instance
-        .collection('admin_added_balance')
-        .where('userId', isEqualTo: uid)
-        .get();
-    for (var doc in adminSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Admin Added',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': data['note'] ?? 'Added by Admin',
-        'tmi': '',
-        'isPositive': true,
-      });
-    }
-
-    // Income / Received
-    final receivedSnap = await FirebaseFirestore.instance
-        .collection('received_money')
-        .where('userId', isEqualTo: uid)
-        .get();
-    for (var doc in receivedSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Income',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': data['source'] ?? 'Received',
-        'tmi': '',
-        'isPositive': true,
-      });
-    }
-
-    // Sort all by date (latest first)
-    transactions.sort((a, b) =>
-        DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
-
-    return transactions;
   }
 
   String formatTimestamp(Timestamp? timestamp) {
-    if (timestamp == null) return '';
+    if (timestamp == null) return DateTime.now().toIso8601String();
     final dt = timestamp.toDate();
-    return DateFormat('yyyy-MM-ddTHH:mm:ss')
-        .format(dt); // Parseable for sorting
+    return dt.toIso8601String();
   }
 }

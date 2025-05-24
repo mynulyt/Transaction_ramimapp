@@ -19,7 +19,7 @@ class TallyKhataScreen extends StatelessWidget {
     Widget iconWidget;
 
     if (iconOrImage is IconData) {
-      iconWidget = Icon(iconOrImage, color: Colors.indigo);
+      iconWidget = Icon(iconOrImage, color: Colors.indigo, size: 24);
     } else if (iconOrImage is String) {
       iconWidget = Image.asset(
         iconOrImage,
@@ -27,25 +27,46 @@ class TallyKhataScreen extends StatelessWidget {
         height: 24,
       );
     } else {
-      iconWidget = const Icon(Icons.help_outline, color: Colors.red);
+      iconWidget = const Icon(Icons.help_outline, color: Colors.red, size: 24);
     }
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      title: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      margin: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
         children: [
           iconWidget,
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              Text(title),
-            ],
+            ),
           ),
         ],
       ),
@@ -57,19 +78,22 @@ class TallyKhataScreen extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      childAspectRatio: 2.5,
+      childAspectRatio: 2.2,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      padding: const EdgeInsets.all(8),
       children: [
         _buildStatItem(Icons.attach_money, 'Total Sales',
             '৳${stats['totalSales']?.toStringAsFixed(2) ?? '0.00'}'),
-        _buildStatItem(Icons.today, 'Today\'s Sales',
+        _buildStatItem(Icons.today, 'Today Sales',
             '৳${stats['todaysSales']?.toStringAsFixed(2) ?? '0.00'}'),
         _buildStatItem(Icons.account_balance_wallet, 'Total Transfer',
             '৳${stats['totalTransfer']?.toStringAsFixed(2) ?? '0.00'}'),
-        _buildStatItem(Icons.account_balance_wallet, 'Today\'s Transfer',
+        _buildStatItem(Icons.account_balance_wallet, 'Today Transfer',
             '৳${stats['todaysTransfer']?.toStringAsFixed(2) ?? '0.00'}'),
         _buildStatItem(Icons.payments, 'Total Received',
             '৳${stats['totalReceived']?.toStringAsFixed(2) ?? '0.00'}'),
-        _buildStatItem(Icons.payments, 'Today\'s Received',
+        _buildStatItem(Icons.payments, 'Today Received',
             '৳${stats['todaysReceived']?.toStringAsFixed(2) ?? '0.00'}'),
       ],
     );
@@ -405,32 +429,70 @@ class TallyKhataScreen extends StatelessWidget {
                     final transaction = recentTransactions[index];
                     final data = transaction['data'] as Map<String, dynamic>;
                     final isReceived = transaction['type'] == 'received';
-                    final amount = data['amount']?.toString() ?? '0';
+                    final amount =
+                        (data['amount'] as num?)?.toStringAsFixed(2) ?? '0.00';
                     final otherPartyName = isReceived
                         ? data['senderName']?.toString() ?? 'Unknown'
                         : data['receiverName']?.toString() ?? 'Unknown';
                     final date = (data['timestamp'] as Timestamp?)?.toDate() ??
                         DateTime.now();
 
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor:
-                            isReceived ? Colors.green[100] : Colors.indigo[100],
-                        child: Icon(
-                          isReceived ? Icons.call_received : Icons.call_made,
-                          color: isReceived ? Colors.green : Colors.indigo,
-                        ),
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      title: Text(
-                        isReceived
-                            ? 'Received from $otherPartyName - ৳$amount'
-                            : 'Transfer to $otherPartyName - ৳$amount',
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: isReceived
+                                ? Colors.green[100]
+                                : Colors.indigo[100],
+                            child: Icon(
+                              isReceived
+                                  ? Icons.call_received
+                                  : Icons.call_made,
+                              color: isReceived ? Colors.green : Colors.indigo,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isReceived
+                                      ? 'Received from $otherPartyName'
+                                      : 'Transfer to $otherPartyName',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '৳$amount',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isReceived
+                                        ? Colors.green
+                                        : Colors.indigo,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            DateFormat('dd/MM').format(date),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
-                      subtitle: Text(
-                        DateFormat('dd/MM/yyyy HH:mm').format(date),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
                     );
                   },
                 );

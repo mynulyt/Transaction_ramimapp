@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // Add this import for launching phone/URLs
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Add this import
 import 'package:ramimapp/AdminPanel/Admin_panel/admin_login_page.dart';
 import 'package:ramimapp/Database/Auth_services/auth_services.dart';
 import 'package:ramimapp/button-pages/Forgget_pass.dart';
@@ -16,11 +17,37 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool rememberMe = false;
+  bool isPasswordVisible = false;
 
   @override
   void initState() {
     super.initState();
-    emailController.text = AuthService.lastUsedEmail ?? "";
+    _loadSavedCredentials();
+  }
+
+  // Load saved email and password if "remember me" was checked
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      emailController.text = prefs.getString('saved_email') ?? "";
+      passwordController.text = prefs.getString('saved_password') ?? "";
+      rememberMe = prefs.getBool('remember_me') ?? false;
+    });
+  }
+
+  // Save or clear credentials based on "remember me" checkbox
+  Future<void> _saveCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (rememberMe) {
+      await prefs.setString('saved_email', emailController.text.trim());
+      await prefs.setString('saved_password', passwordController.text.trim());
+      await prefs.setBool('remember_me', true);
+    } else {
+      await prefs.remove('saved_email');
+      await prefs.remove('saved_password');
+      await prefs.setBool('remember_me', false);
+    }
   }
 
   void _loginWithEmail() async {
@@ -37,6 +64,9 @@ class _LoginPageState extends State<LoginPage> {
     final result = await AuthService().signInWithEmail(email, password);
 
     if (result == "success") {
+      // Save credentials if "remember me" is checked
+      await _saveCredentials();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login successful!")),
       );
@@ -70,7 +100,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Helper method to launch URLs
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri)) {
@@ -110,8 +139,38 @@ class _LoginPageState extends State<LoginPage> {
                     _buildTextField(Icons.email, "Email",
                         controller: emailController),
                     const SizedBox(height: 20),
-                    _buildTextField(Icons.lock, "Enter password",
-                        controller: passwordController, obscure: true),
+                    _buildPasswordField(),
+                    const SizedBox(height: 10),
+                    // Add Remember Me checkbox
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              rememberMe = value!;
+                            });
+                          },
+                          activeColor: Colors.indigo,
+                        ),
+                        const Text("Remember me"),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ForggetPassword()));
+                          },
+                          child: const Text(
+                            "Forgot password?",
+                            style:
+                                TextStyle(color: Colors.indigo, fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
@@ -157,19 +216,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const ForggetPassword()));
-                      },
-                      child: const Text(
-                        "Forgot password?",
-                        style: TextStyle(color: Colors.indigo, fontSize: 16),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     const Text.rich(
                       TextSpan(
                         children: [
@@ -207,7 +253,6 @@ class _LoginPageState extends State<LoginPage> {
                       icon: Icons.call_end,
                       label: "Whatsapp",
                       onTap: () {
-                        // Open WhatsApp chat with number
                         _launchUrl("https://wa.me/8801872597773");
                       },
                     ),
@@ -215,18 +260,13 @@ class _LoginPageState extends State<LoginPage> {
                       icon: Icons.send,
                       label: "Telegram",
                       onTap: () {
-                        // Open Telegram chat with number (Telegram username required ideally, fallback to phone dial)
-                        _launchUrl(
-                            "https://t.me/Ramimpay"); // may not work, alternative is dialer
-                        // If doesn't work, fallback to dial
-                        // _launchUrl("tel:01883834205");
+                        _launchUrl("https://t.me/Ramimpay");
                       },
                     ),
                     _SocialIcon(
                       icon: Icons.video_collection_outlined,
                       label: "Youtube",
                       onTap: () {
-                        // Facebook profile/page URL or dial number
                         _launchUrl("https://www.youtube.com/@Ramimpay");
                       },
                     ),
@@ -234,7 +274,6 @@ class _LoginPageState extends State<LoginPage> {
                       icon: Icons.call,
                       label: "Helpline",
                       onTap: () {
-                        // Dial the helpline number
                         _launchUrl("tel:8801872597773");
                       },
                     ),
@@ -292,6 +331,37 @@ class _LoginPageState extends State<LoginPage> {
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextField(
+      controller: passwordController,
+      obscureText: !isPasswordVisible,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.grey.shade200,
+        prefixIcon: const Icon(Icons.lock, color: Colors.indigo),
+        labelText: "Password",
+        labelStyle: const TextStyle(color: Colors.grey),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        suffixIcon: IconButton(
+          icon: Icon(
+            isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: Colors.indigo,
+          ),
+          onPressed: () {
+            setState(() {
+              isPasswordVisible = !isPasswordVisible;
+            });
+          },
+        ),
       ),
     );
   }

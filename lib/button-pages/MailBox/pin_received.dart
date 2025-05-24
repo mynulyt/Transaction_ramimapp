@@ -85,7 +85,7 @@ class UserPinInfoPage extends StatelessWidget {
         children: [
           Text(
             "$label: ",
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.indigo,
               fontSize: 15,
