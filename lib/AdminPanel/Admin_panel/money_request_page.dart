@@ -279,10 +279,19 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
                         children: [
                           const Icon(Icons.phone, size: 18, color: Colors.grey),
                           const SizedBox(width: 6),
-                          Text(
-                            'Number: ${data['number'] ?? ''}',
-                            style: const TextStyle(
-                                fontSize: 16, color: Colors.black87),
+                          SelectableText.rich(
+                            TextSpan(
+                              text: 'Number: ',
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.black87),
+                              children: [
+                                TextSpan(
+                                  text: '${data['number'] ?? ''}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.normal),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
