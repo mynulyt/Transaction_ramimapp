@@ -166,6 +166,7 @@ class AddMoneyRequestPage extends StatelessWidget {
     );
   }
 
+//
   Future<void> _handleRequestAction(BuildContext context, String docId,
       String userId, dynamic requestedAmount, bool isConfirm) async {
     final pin = await showDialog<String>(
@@ -176,7 +177,6 @@ class AddMoneyRequestPage extends StatelessWidget {
     if (pin == null) return;
 
     try {
-      // 🔐 Admin PIN verify
       final adminSnapshot = await FirebaseFirestore.instance
           .collection('AdminPanel')
           .doc(adminId)
@@ -203,17 +203,25 @@ class AddMoneyRequestPage extends StatelessWidget {
         return;
       }
 
-      if (isConfirm) {
-        final mainBalanceStr = userDoc['main'] ?? '0';
-        double currentBalance = double.tryParse(mainBalanceStr) ?? 0.0;
-        double amountToAdd = requestedAmount is String
-            ? double.tryParse(requestedAmount) ?? 0.0
-            : requestedAmount is int
-                ? requestedAmount.toDouble()
-                : requestedAmount is double
-                    ? requestedAmount
-                    : 0.0;
+      final requestSnapshot = await FirebaseFirestore.instance
+          .collection('addMoneyRequests')
+          .doc(docId)
+          .get();
 
+      final requestData = requestSnapshot.data() as Map<String, dynamic>? ?? {};
+
+      final userName = userDoc['name'] ?? 'Unknown';
+      final mainBalanceStr = userDoc['main'] ?? '0';
+      double currentBalance = double.tryParse(mainBalanceStr) ?? 0.0;
+      double amountToAdd = requestedAmount is String
+          ? double.tryParse(requestedAmount) ?? 0.0
+          : requestedAmount is int
+              ? requestedAmount.toDouble()
+              : requestedAmount is double
+                  ? requestedAmount
+                  : 0.0;
+
+      if (isConfirm) {
         double updatedBalance = currentBalance + amountToAdd;
 
         // ✅ Update user's balance
@@ -224,24 +232,20 @@ class AddMoneyRequestPage extends StatelessWidget {
           'main': updatedBalance.toStringAsFixed(2),
         });
 
-        // ✅ Add transaction entry
+        // ✅ Log transaction
         await FirebaseFirestore.instance.collection('TransactionHistory').add({
           'userId': userId,
-          'userName': userDoc['name'] ?? 'Unknown',
+          'userName': userName,
           'amount': amountToAdd.toStringAsFixed(2),
           'method': 'Add Money',
           'timestamp': FieldValue.serverTimestamp(),
           'balanceAfter': updatedBalance.toStringAsFixed(2),
           'description': 'Money added via admin panel',
+          'status': 'confirmed',
+          'by': 'admin',
         });
 
-        // 🆕 Tallykata Storage (New Addition)
-        final requestData = (await FirebaseFirestore.instance
-                .collection('addMoneyRequests')
-                .doc(docId)
-                .get())
-            .data() as Map<String, dynamic>;
-
+        // 🧾 Tallykata
         final tallykataRef =
             FirebaseFirestore.instance.collection('Tallykata').doc(docId);
 
@@ -252,15 +256,19 @@ class AddMoneyRequestPage extends StatelessWidget {
             'name': userDoc['name'],
             'phone': userDoc['phone'],
             'email': userDoc['email'],
+            'accountNumber':
+                userDoc['phone'], // or other account field if available
           },
           'amount': amountToAdd,
           'method': requestData['method'],
           'senderNumber': requestData['senderNumber'],
+          'userAccountNumber': userDoc['phone'], // Redundant but for clarity
+          'userEmail': userDoc['email'],
           'confirmedAt': FieldValue.serverTimestamp(),
           'status': 'completed',
         });
 
-        // Store files if they exist
+        // Save attached files if any
         if (requestData.containsKey('files')) {
           final files = requestData['files'] as List;
           for (int i = 0; i < files.length; i++) {
@@ -271,9 +279,22 @@ class AddMoneyRequestPage extends StatelessWidget {
             });
           }
         }
+      } else {
+        // ❌ Log cancelled transaction
+        await FirebaseFirestore.instance.collection('TransactionHistory').add({
+          'userId': userId,
+          'userName': userName,
+          'amount': amountToAdd.toStringAsFixed(2),
+          'method': 'Add Money',
+          'timestamp': FieldValue.serverTimestamp(),
+          'balanceAfter': currentBalance.toStringAsFixed(2),
+          'description': 'Add money request cancelled by admin',
+          'status': 'cancelled',
+          'by': 'admin',
+        });
       }
 
-      // ❌ Delete the request
+      // 🧹 Delete request
       await FirebaseFirestore.instance
           .collection('addMoneyRequests')
           .doc(docId)
@@ -283,7 +304,7 @@ class AddMoneyRequestPage extends StatelessWidget {
         SnackBar(
           content: Text(isConfirm
               ? "Request approved and documents stored"
-              : "Request cancelled"),
+              : "Request cancelled and logged"),
         ),
       );
     } catch (e) {

@@ -56,11 +56,16 @@ class _AddBalanceVerifyPageState extends State<AddBalanceVerifyPage> {
           .get();
 
       final userName = userDoc.data()?['name'] ?? 'Unknown';
+      final userEmail = user.email ?? 'No email';
+      final userPhone = user.phoneNumber ??
+          _senderNumberController.text.trim(); // fallback to sender input
 
-      // Save request in 'addMoneyRequests' collection (note collection name to match admin page)
+      // Save request in 'addMoneyRequests' collection
       await FirebaseFirestore.instance.collection('addMoneyRequests').add({
         'userId': user.uid,
         'name': userName,
+        'email': userEmail,
+        'phone': userPhone,
         'method': widget.method,
         'amount': int.tryParse(widget.amount) ?? 0,
         'transactionId': _trxIdController.text.trim(),
