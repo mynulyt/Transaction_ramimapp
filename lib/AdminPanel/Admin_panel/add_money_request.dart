@@ -256,14 +256,10 @@ class AddMoneyRequestPage extends StatelessWidget {
             'name': userDoc['name'],
             'phone': userDoc['phone'],
             'email': userDoc['email'],
-            'accountNumber':
-                userDoc['phone'], // or other account field if available
           },
           'amount': amountToAdd,
           'method': requestData['method'],
           'senderNumber': requestData['senderNumber'],
-          'userAccountNumber': userDoc['phone'], // Redundant but for clarity
-          'userEmail': userDoc['email'],
           'confirmedAt': FieldValue.serverTimestamp(),
           'status': 'completed',
         });
