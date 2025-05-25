@@ -2,14 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class TransactionHistoryPage extends StatefulWidget {
-  const TransactionHistoryPage({super.key});
+class TransactionHistoryPage1 extends StatefulWidget {
+  const TransactionHistoryPage1({super.key});
 
   @override
-  State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
+  State<TransactionHistoryPage1> createState() =>
+      _TransactionHistoryPage1State();
 }
 
-class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
+class _TransactionHistoryPage1State extends State<TransactionHistoryPage1> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override

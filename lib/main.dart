@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:ramimapp/AdminPanel/Admin_panel/transactionhistory_page.dart';
 import 'package:ramimapp/button-pages/MailBox/user_mail_box.dart';
 import 'package:ramimapp/button-pages/addbalancemethod_page.dart';
 import 'package:ramimapp/button-pages/adduser_page.dart';
@@ -9,6 +10,7 @@ import 'package:ramimapp/button-pages/rechargepage.dart';
 import 'package:ramimapp/button-pages/sendmoney_page.dart';
 import 'package:ramimapp/button-pages/slash_screen.dart';
 import 'package:ramimapp/button-pages/tallykhata_page.dart';
+import 'package:ramimapp/button-pages/transaction_history.dart';
 import 'package:ramimapp/button-pages/transferconfirm_page.dart';
 import 'package:ramimapp/button-pages/user_transaction_history.dart';
 import 'package:ramimapp/button-pages/users_my_user.dart';
@@ -75,7 +77,7 @@ class _MainScreenState extends State<MainScreen> {
           user != null
               ? buildHomeScreen(user.uid)
               : const Center(child: Text('Please log in.')),
-          const UserTransactionHistoryPage(),
+          const TransactionHistoryPage2(),
           const TallyKhataPage(),
         ],
       ),
