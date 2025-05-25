@@ -13,7 +13,7 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
   Future<void> _showPinAndNumberDialog(
       BuildContext context, String docId, Map<String, dynamic> data) async {
     final pinController = TextEditingController();
-    final numberController = TextEditingController();
+    final numberController = TextEditingController(text: data['number'] ?? '');
     final formKey = GlobalKey<FormState>();
 
     await showDialog(
@@ -70,8 +70,6 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
                 if (formKey.currentState!.validate()) {
                   final pin = pinController.text.trim();
                   final number = numberController.text.trim();
-
-                  // TODO: Optionally verify PIN here before proceeding
 
                   // Store PIN and Number in Firestore
                   await FirebaseFirestore.instance
