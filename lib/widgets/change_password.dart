@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ramimapp/Database/Auth_services/auth_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
@@ -13,12 +13,14 @@ class _ChangePasswordState extends State<ChangePassword> {
   final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  bool _isLoading = false;
 
-  void _changePassword() async {
-    String oldPassword = oldPasswordController.text.trim();
-    String newPassword = newPasswordController.text.trim();
-    String confirmPassword = confirmPasswordController.text.trim();
+  Future<void> _changePassword() async {
+    final String oldPassword = oldPasswordController.text.trim();
+    final String newPassword = newPasswordController.text.trim();
+    final String confirmPassword = confirmPasswordController.text.trim();
 
+    // Validate inputs
     if (newPassword != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("New passwords do not match")),
@@ -26,24 +28,76 @@ class _ChangePasswordState extends State<ChangePassword> {
       return;
     }
 
-    if (newPassword.isEmpty || oldPassword.isEmpty) {
+    if (newPassword.isEmpty || oldPassword.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill in all fields")),
       );
       return;
     }
 
-    // Call your AuthService here
-    String result = await AuthService().changePassword(newPassword);
+    if (newPassword.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password must be at least 6 characters")),
+      );
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Old Password does not match')),
-    );
+    setState(() {
+      _isLoading = true;
+    });
 
-    // Optionally, you can clear the fields
-    oldPasswordController.clear();
-    newPasswordController.clear();
-    confirmPasswordController.clear();
+    try {
+      // Get current user
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No user is currently logged in")),
+        );
+        return;
+      }
+
+      // First reauthenticate with old password
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: oldPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+
+      // If reauthentication succeeds, change password
+      await user.updatePassword(newPassword);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password changed successfully!")),
+      );
+
+      // Clear fields
+      oldPasswordController.clear();
+      newPasswordController.clear();
+      confirmPasswordController.clear();
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'wrong-password') {
+        errorMessage = "Old password is incorrect";
+      } else if (e.code == 'requires-recent-login') {
+        errorMessage =
+            "This operation requires recent authentication. Please log in again.";
+      } else {
+        errorMessage = "Error changing password: ${e.message}";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An unexpected error occurred: $e")),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -122,21 +176,23 @@ class _ChangePasswordState extends State<ChangePassword> {
               const SizedBox(height: 50),
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: _changePassword,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 14),
-                    side: const BorderSide(color: Colors.indigo),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text(
-                    "Change Password",
-                    style: TextStyle(color: Colors.indigo, fontSize: 16),
-                  ),
-                ),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : OutlinedButton(
+                        onPressed: _changePassword,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 14),
+                          side: const BorderSide(color: Colors.indigo),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text(
+                          "Change Password",
+                          style: TextStyle(color: Colors.indigo, fontSize: 16),
+                        ),
+                      ),
               ),
             ],
           ),
