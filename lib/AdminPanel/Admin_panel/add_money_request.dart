@@ -111,8 +111,13 @@ class AddMoneyRequestPage extends StatelessWidget {
                                         vertical: 14),
                                   ),
                                   onPressed: () {
-                                    _handleRequestAction(context, docId, userId,
-                                        requestedAmount, true);
+                                    _handleRequestAction(
+                                      context,
+                                      docId,
+                                      userId,
+                                      requestedAmount,
+                                      true,
+                                    );
                                   },
                                 ),
                               ),
@@ -128,8 +133,13 @@ class AddMoneyRequestPage extends StatelessWidget {
                                         vertical: 14),
                                   ),
                                   onPressed: () {
-                                    _handleRequestAction(context, docId, userId,
-                                        requestedAmount, false);
+                                    _handleRequestAction(
+                                      context,
+                                      docId,
+                                      userId,
+                                      requestedAmount,
+                                      false,
+                                    );
                                   },
                                 ),
                               ),
@@ -166,7 +176,6 @@ class AddMoneyRequestPage extends StatelessWidget {
     );
   }
 
-//
   Future<void> _handleRequestAction(BuildContext context, String docId,
       String userId, dynamic requestedAmount, bool isConfirm) async {
     final pin = await showDialog<String>(
@@ -210,8 +219,14 @@ class AddMoneyRequestPage extends StatelessWidget {
 
       final requestData = requestSnapshot.data() as Map<String, dynamic>? ?? {};
 
-      final userName = userDoc['name'] ?? 'Unknown';
-      final mainBalanceStr = userDoc['main'] ?? '0';
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final userName = userData['name'] ?? 'Unknown';
+      final userEmail = userData['email'] ?? 'unknown@email.com';
+      final accountNumber = userData['phone'] ?? 'Unknown';
+      final senderNumber = requestData['senderNumber'] ?? 'N/A';
+      final method = requestData['method'] ?? 'N/A';
+
+      final mainBalanceStr = userData['main'] ?? '0';
       double currentBalance = double.tryParse(mainBalanceStr) ?? 0.0;
       double amountToAdd = requestedAmount is String
           ? double.tryParse(requestedAmount) ?? 0.0
@@ -224,7 +239,6 @@ class AddMoneyRequestPage extends StatelessWidget {
       if (isConfirm) {
         double updatedBalance = currentBalance + amountToAdd;
 
-        // ✅ Update user's balance
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
@@ -232,10 +246,12 @@ class AddMoneyRequestPage extends StatelessWidget {
           'main': updatedBalance.toStringAsFixed(2),
         });
 
-        // ✅ Log transaction
         await FirebaseFirestore.instance.collection('TransactionHistory').add({
           'userId': userId,
           'userName': userName,
+          'userEmail': userEmail,
+          'accountNumber': accountNumber,
+          'senderNumber': senderNumber,
           'amount': amountToAdd.toStringAsFixed(2),
           'method': 'Add Money',
           'timestamp': FieldValue.serverTimestamp(),
@@ -245,7 +261,6 @@ class AddMoneyRequestPage extends StatelessWidget {
           'by': 'admin',
         });
 
-        // 🧾 Tallykata
         final tallykataRef =
             FirebaseFirestore.instance.collection('Tallykata').doc(docId);
 
@@ -253,18 +268,17 @@ class AddMoneyRequestPage extends StatelessWidget {
           'requestId': docId,
           'userId': userId,
           'userDetails': {
-            'name': userDoc['name'],
-            'phone': userDoc['phone'],
-            'email': userDoc['email'],
+            'name': userName,
+            'phone': accountNumber,
+            'email': userEmail,
           },
           'amount': amountToAdd,
-          'method': requestData['method'],
-          'senderNumber': requestData['senderNumber'],
+          'method': method,
+          'senderNumber': senderNumber,
           'confirmedAt': FieldValue.serverTimestamp(),
           'status': 'completed',
         });
 
-        // Save attached files if any
         if (requestData.containsKey('files')) {
           final files = requestData['files'] as List;
           for (int i = 0; i < files.length; i++) {
@@ -276,10 +290,12 @@ class AddMoneyRequestPage extends StatelessWidget {
           }
         }
       } else {
-        // ❌ Log cancelled transaction
         await FirebaseFirestore.instance.collection('TransactionHistory').add({
           'userId': userId,
           'userName': userName,
+          'userEmail': userEmail,
+          'accountNumber': accountNumber,
+          'senderNumber': senderNumber,
           'amount': amountToAdd.toStringAsFixed(2),
           'method': 'Add Money',
           'timestamp': FieldValue.serverTimestamp(),
@@ -290,7 +306,6 @@ class AddMoneyRequestPage extends StatelessWidget {
         });
       }
 
-      // 🧹 Delete request
       await FirebaseFirestore.instance
           .collection('addMoneyRequests')
           .doc(docId)
