@@ -32,7 +32,7 @@ class _MoneyRequestPageState extends State<MoneyRequestPage> {
                     labelText: 'PIN',
                     border: OutlineInputBorder(),
                   ),
-                  obscureText: true,
+                  obscureText: false,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter PIN';
