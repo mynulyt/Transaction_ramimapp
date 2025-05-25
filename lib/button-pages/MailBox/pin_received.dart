@@ -44,6 +44,7 @@ class UserPinInfoPage extends StatelessWidget {
               final email = data['email'] ?? '';
               final name = data['name'] ?? '';
               final number = data['number'] ?? '';
+              final pin = data['pin'] ?? '';
               final timestamp = data['timestamp'] as Timestamp?;
               final formattedTime = timestamp != null
                   ? DateFormat('dd MMM yyyy, hh:mm a')
@@ -64,7 +65,8 @@ class UserPinInfoPage extends StatelessWidget {
                     children: [
                       _infoRow("Name", name),
                       _infoRow("Email", email),
-                      _infoRow("PIN Number", number),
+                      _infoRow("PIN Number", pin),
+                      _infoRow("Received By", number),
                       _infoRow("Timestamp", formattedTime),
                     ],
                   ),
