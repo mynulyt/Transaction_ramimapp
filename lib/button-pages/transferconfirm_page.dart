@@ -226,6 +226,8 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
           'status': 'completed',
           'senderId': senderUid,
           'senderName': senderName,
+          'senderPhone': senderData?['phone'] ?? '',
+          'receiverPhone': receiverData['phone'] ?? '',
           'description': description,
           'timestamp': FieldValue.serverTimestamp(),
           'balanceAfter': (receiverMain + amount).toStringAsFixed(2),
