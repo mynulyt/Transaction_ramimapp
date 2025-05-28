@@ -15,11 +15,13 @@ class _UserTransactionHistoryPageState
     extends State<UserTransactionHistoryPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
+  String? _currentUserEmail;
 
   @override
   void initState() {
     super.initState();
     if (_currentUser != null) {
+      _currentUserEmail = _currentUser!.email;
       deleteOldTransactions();
     }
   }
@@ -31,13 +33,21 @@ class _UserTransactionHistoryPageState
     final DateTime oneMonthAgo =
         DateTime.now().subtract(const Duration(days: 30));
     try {
+      // Get transactions matching either uid, userId, or email
       final QuerySnapshot snapshot = await _firestore
           .collection('TransactionHistory')
-          .where('userId', isEqualTo: _currentUser!.uid)
           .where('timestamp', isLessThan: Timestamp.fromDate(oneMonthAgo))
           .get();
 
-      for (QueryDocumentSnapshot doc in snapshot.docs) {
+      final List<QueryDocumentSnapshot> userDocs = snapshot.docs.where((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return data['uid'] == _currentUser!.uid ||
+            data['userId'] == _currentUser!.uid ||
+            data['email'] == _currentUserEmail ||
+            data['userEmail'] == _currentUserEmail;
+      }).toList();
+
+      for (QueryDocumentSnapshot doc in userDocs) {
         await _firestore.collection('TransactionHistory').doc(doc.id).delete();
       }
     } catch (e) {
@@ -71,17 +81,24 @@ class _UserTransactionHistoryPageState
 
     if (shouldDelete == true) {
       try {
-        final snapshot = await _firestore
-            .collection('TransactionHistory')
-            .where('userId', isEqualTo: _currentUser!.uid)
-            .get();
+        final snapshot =
+            await _firestore.collection('TransactionHistory').get();
 
-        for (QueryDocumentSnapshot doc in snapshot.docs) {
+        final List<QueryDocumentSnapshot> userDocs = snapshot.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return data['uid'] == _currentUser!.uid ||
+              data['userId'] == _currentUser!.uid ||
+              data['email'] == _currentUserEmail ||
+              data['userEmail'] == _currentUserEmail;
+        }).toList();
+
+        for (QueryDocumentSnapshot doc in userDocs) {
           await _firestore
               .collection('TransactionHistory')
               .doc(doc.id)
               .delete();
         }
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("All your transactions deleted.")),
         );
@@ -126,11 +143,7 @@ class _UserTransactionHistoryPageState
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore
-            .collection('TransactionHistory')
-            .where('userId', isEqualTo: _currentUser!.uid)
-            .orderBy('timestamp', descending: true)
-            .snapshots(),
+        stream: _firestore.collection('TransactionHistory').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
@@ -140,11 +153,28 @@ class _UserTransactionHistoryPageState
             return const Center(child: CircularProgressIndicator());
           }
 
-          final transactions = snapshot.data!.docs;
+          // Filter transactions to only show current user's
+          final transactions = snapshot.data!.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['uid'] == _currentUser!.uid ||
+                data['userId'] == _currentUser!.uid ||
+                data['email'] == _currentUserEmail ||
+                data['userEmail'] == _currentUserEmail;
+          }).toList();
 
           if (transactions.isEmpty) {
             return const Center(child: Text('No transactions found.'));
           }
+
+          // Sort by timestamp descending
+          transactions.sort((a, b) {
+            final aTime =
+                (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+            final bTime =
+                (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+            return (bTime ?? Timestamp.now())
+                .compareTo(aTime ?? Timestamp.now());
+          });
 
           return ListView.builder(
             itemCount: transactions.length,
@@ -152,19 +182,31 @@ class _UserTransactionHistoryPageState
               final data = transactions[index].data() as Map<String, dynamic>;
 
               final userName = data['userName'] ?? data['name'] ?? 'User';
-              final amount = data['amount']?.toString() ?? '0';
+              final amount = data['amount']?.toString() ??
+                  data['price']?.toString() ??
+                  '0';
               final method = data['method'] ?? '';
               final status = data['status'] ?? 'N/A';
               final action = data['action'] ?? '';
-              final rechargeNumber = data['rechargeNumber'] ?? '';
+              final rechargeNumber = data['rechargeNumber'] ??
+                  data['accountNumber'] ??
+                  data['number'] ??
+                  '';
               final operator = data['operator'] ?? '';
-              final type = data['type'] ?? '';
-              final number = data['number'] ?? '';
+              final type = data['type'] ?? data['offerType'] ?? '';
+              final description = data['description'] ?? '';
               final timestamp = data['timestamp'] as Timestamp?;
               final formattedDate = timestamp != null
                   ? DateFormat('dd MMM yyyy, hh:mm a')
                       .format(timestamp.toDate())
                   : 'Unknown date';
+
+              // Additional fields specific to your data structure
+              final internet = data['internet'] ?? '';
+              final minutes = data['minutes'] ?? '';
+              final sms = data['sms'] ?? '';
+              final term = data['term'] ?? '';
+              final balanceAfter = data['balanceAfter'] ?? '';
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -196,13 +238,19 @@ class _UserTransactionHistoryPageState
                       if (action.isNotEmpty && action != 'N/A')
                         Text('Action: $action'),
                       if (rechargeNumber.isNotEmpty && rechargeNumber != 'N/A')
-                        Text('Recharge: $rechargeNumber'),
+                        Text('Number: $rechargeNumber'),
                       if (operator.isNotEmpty && operator != 'N/A')
                         Text('Operator: $operator'),
-                      if (number.isNotEmpty && number != 'N/A')
-                        Text('Number: $number'),
                       if (method.isNotEmpty && method != 'N/A')
                         Text('Method: $method'),
+                      if (description.isNotEmpty && description != 'N/A')
+                        Text('Description: $description'),
+                      if (internet.isNotEmpty) Text('Internet: $internet'),
+                      if (minutes.isNotEmpty) Text('Minutes: $minutes'),
+                      if (sms.isNotEmpty) Text('SMS: $sms'),
+                      if (term.isNotEmpty) Text('Term: $term'),
+                      if (balanceAfter.isNotEmpty)
+                        Text('Balance After: $balanceAfter'),
                       if (formattedDate != 'Unknown date')
                         Text('Date: $formattedDate'),
                     ],
@@ -222,7 +270,7 @@ class _UserTransactionHistoryPageState
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: status == 'Approved'
+                          color: status == 'confirmed' || status == 'Approved'
                               ? Colors.green.shade100
                               : Colors.orange.shade100,
                           borderRadius: BorderRadius.circular(8),
@@ -231,7 +279,7 @@ class _UserTransactionHistoryPageState
                           status,
                           style: TextStyle(
                             fontSize: 12,
-                            color: status == 'Approved'
+                            color: status == 'confirmed' || status == 'Approved'
                                 ? Colors.green
                                 : Colors.orange,
                             fontWeight: FontWeight.bold,

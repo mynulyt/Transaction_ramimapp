@@ -123,6 +123,8 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
 
       final senderData = senderSnapshot.data();
       final storedPin = senderData?['pin'];
+      final senderName = senderData?['name'] ?? 'Unknown';
+      final senderEmail = senderData?['email'] ?? '';
 
       if (storedPin == null || storedPin != enteredPin) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -154,9 +156,12 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
 
       final receiverMain =
           double.tryParse(receiverData['main'].toString()) ?? 0;
+      final receiverName = receiverData['name'] ?? 'Unknown';
+      final receiverEmail = receiverData['email'] ?? '';
 
       // Transaction
       await _firestore.runTransaction((transaction) async {
+        // Update sender and receiver balances
         transaction.update(senderDocRef, {
           'main': (senderMain - amount).toStringAsFixed(2),
         });
@@ -164,6 +169,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
           'main': (receiverMain + amount).toStringAsFixed(2),
         });
 
+        // Create transfer record
         final transferRef = _firestore.collection('transfers').doc();
         transaction.set(transferRef, {
           'senderId': senderUid,
@@ -174,18 +180,55 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        // Add to Total Transfer collection
+        // Create Total Transfer record
         final totalTransferRef = _firestore.collection('Total Transfer').doc();
         transaction.set(totalTransferRef, {
           'senderId': senderUid,
-          'senderName': senderData?['name'] ?? 'Unknown',
+          'senderName': senderName,
           'receiverId': _receiverUid,
-          'receiverName': receiverData['name'] ?? 'Unknown',
+          'receiverName': receiverName,
           'amount': amount,
           'description': description,
           'status': 'completed',
           'timestamp': FieldValue.serverTimestamp(),
           'type': 'Money Transfer',
+        });
+
+        // Create TransactionHistory records for both sender and receiver
+        final senderTransactionRef =
+            _firestore.collection('TransactionHistory').doc();
+        transaction.set(senderTransactionRef, {
+          'userId': senderUid,
+          'userName': senderName,
+          'email': senderEmail,
+          'amount': amount.toStringAsFixed(2),
+          'action': 'Money Sent',
+          'type': 'Transfer',
+          'method': 'Wallet',
+          'status': 'completed',
+          'receiverId': _receiverUid,
+          'receiverName': receiverName,
+          'description': description,
+          'timestamp': FieldValue.serverTimestamp(),
+          'balanceAfter': (senderMain - amount).toStringAsFixed(2),
+        });
+
+        final receiverTransactionRef =
+            _firestore.collection('TransactionHistory').doc();
+        transaction.set(receiverTransactionRef, {
+          'userId': _receiverUid,
+          'userName': receiverName,
+          'email': receiverEmail,
+          'amount': amount.toStringAsFixed(2),
+          'action': 'Money Received',
+          'type': 'Transfer',
+          'method': 'Wallet',
+          'status': 'completed',
+          'senderId': senderUid,
+          'senderName': senderName,
+          'description': description,
+          'timestamp': FieldValue.serverTimestamp(),
+          'balanceAfter': (receiverMain + amount).toStringAsFixed(2),
         });
       });
 
@@ -193,6 +236,7 @@ class _TransferConfirmPageState extends State<TransferConfirmPage> {
         const SnackBar(content: Text('Transfer successful')),
       );
 
+      // Clear form fields
       _phoneController.clear();
       _usernameController.clear();
       _amountController.clear();
