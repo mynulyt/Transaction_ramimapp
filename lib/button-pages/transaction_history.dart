@@ -1,273 +1,251 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class TransactionHistoryPage2 extends StatelessWidget {
-  const TransactionHistoryPage2({super.key});
+class UserTransactionHistoryPage extends StatefulWidget {
+  const UserTransactionHistoryPage({super.key});
+
+  @override
+  State<UserTransactionHistoryPage> createState() =>
+      _UserTransactionHistoryPageState();
+}
+
+class _UserTransactionHistoryPageState
+    extends State<UserTransactionHistoryPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_currentUser != null) {
+      deleteOldTransactions();
+    }
+  }
+
+  // Delete transactions older than 1 month for current user
+  Future<void> deleteOldTransactions() async {
+    if (_currentUser == null) return;
+
+    final DateTime oneMonthAgo =
+        DateTime.now().subtract(const Duration(days: 30));
+    try {
+      final QuerySnapshot snapshot = await _firestore
+          .collection('TransactionHistory')
+          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('timestamp', isLessThan: Timestamp.fromDate(oneMonthAgo))
+          .get();
+
+      for (QueryDocumentSnapshot doc in snapshot.docs) {
+        await _firestore.collection('TransactionHistory').doc(doc.id).delete();
+      }
+    } catch (e) {
+      debugPrint('Error deleting old transactions: $e');
+    }
+  }
+
+  // Delete all transactions for current user with confirmation
+  Future<void> deleteAllTransactions() async {
+    if (_currentUser == null) return;
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Confirm Deletion"),
+        content: const Text(
+            "Are you sure you want to delete all your transactions?"),
+        actions: [
+          TextButton(
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Delete All"),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      try {
+        final snapshot = await _firestore
+            .collection('TransactionHistory')
+            .where('userId', isEqualTo: _currentUser!.uid)
+            .get();
+
+        for (QueryDocumentSnapshot doc in snapshot.docs) {
+          await _firestore
+              .collection('TransactionHistory')
+              .doc(doc.id)
+              .delete();
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("All your transactions deleted.")),
+        );
+      } catch (e) {
+        debugPrint("Error deleting all transactions: $e");
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (_currentUser == null) {
+      return Scaffold(
+        backgroundColor: Colors.indigo,
+        body: const Center(
+          child: Text(
+            'Please sign in to view transaction history',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.indigo,
       appBar: AppBar(
-        title: const Text('Transaction History'),
+        title: const Text(
+          'Your Transaction History',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.orangeAccent,
         centerTitle: true,
-        backgroundColor: Colors.pink[700],
-        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_forever),
+            tooltip: "Delete All",
+            onPressed: deleteAllTransactions,
+          ),
+        ],
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: fetchAllTransactions(uid),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestore
+            .collection('TransactionHistory')
+            .where('userId', isEqualTo: _currentUser!.uid)
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong.'));
+          }
+
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final allTransactions = snapshot.data ?? [];
+          final transactions = snapshot.data!.docs;
 
-          if (allTransactions.isEmpty) {
-            return const Center(child: Text('No transaction history found.'));
+          if (transactions.isEmpty) {
+            return const Center(child: Text('No transactions found.'));
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: allTransactions.length,
+            itemCount: transactions.length,
             itemBuilder: (context, index) {
-              final data = allTransactions[index];
+              final data = transactions[index].data() as Map<String, dynamic>;
 
-              return _buildTransactionCard(
-                name: data['name'] ?? 'Unknown',
-                amount: data['amount'].toString(),
-                date: data['date'] ?? '',
-                type: data['type'] ?? '',
-                tmi: data['tmi'] ?? '',
-                isPositive: data['isPositive'] ?? true,
+              final userName = data['userName'] ?? data['name'] ?? 'User';
+              final amount = data['amount']?.toString() ?? '0';
+              final method = data['method'] ?? '';
+              final status = data['status'] ?? 'N/A';
+              final action = data['action'] ?? '';
+              final rechargeNumber = data['rechargeNumber'] ?? '';
+              final operator = data['operator'] ?? '';
+              final type = data['type'] ?? '';
+              final number = data['number'] ?? '';
+              final timestamp = data['timestamp'] as Timestamp?;
+              final formattedDate = timestamp != null
+                  ? DateFormat('dd MMM yyyy, hh:mm a')
+                      .format(timestamp.toDate())
+                  : 'Unknown date';
+
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+                child: ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  leading: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.orangeAccent,
+                    child: Text(
+                      userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  title: Text(
+                    userName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (type.isNotEmpty && type != 'N/A') Text('Type: $type'),
+                      if (action.isNotEmpty && action != 'N/A')
+                        Text('Action: $action'),
+                      if (rechargeNumber.isNotEmpty && rechargeNumber != 'N/A')
+                        Text('Recharge: $rechargeNumber'),
+                      if (operator.isNotEmpty && operator != 'N/A')
+                        Text('Operator: $operator'),
+                      if (number.isNotEmpty && number != 'N/A')
+                        Text('Number: $number'),
+                      if (method.isNotEmpty && method != 'N/A')
+                        Text('Method: $method'),
+                      if (formattedDate != 'Unknown date')
+                        Text('Date: $formattedDate'),
+                    ],
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '৳ $amount',
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: status == 'Approved'
+                              ? Colors.green.shade100
+                              : Colors.orange.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          status,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: status == 'Approved'
+                                ? Colors.green
+                                : Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             },
           );
         },
       ),
     );
-  }
-
-  Widget _buildTransactionCard({
-    required String name,
-    required String amount,
-    required String date,
-    required String type,
-    required String tmi,
-    required bool isPositive,
-  }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isPositive ? Colors.green[100] : Colors.red[100],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _getTransactionIcon(name),
-                color: isPositive ? Colors.green : Colors.red,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    type,
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  if (tmi.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      tmi,
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.blueGrey),
-                    ),
-                  ],
-                  const SizedBox(height: 4),
-                  Text(
-                    date,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              '${isPositive ? '+' : '-'}৳$amount',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isPositive ? Colors.green : Colors.red,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getTransactionIcon(String name) {
-    switch (name) {
-      case 'Money Request':
-        return Icons.request_page;
-      case 'Recharge Request':
-        return Icons.phone_android;
-      case 'Offer Buy':
-        return Icons.local_offer;
-      case 'Transfer':
-        return Icons.send;
-      case 'Admin Added':
-        return Icons.add_circle;
-      case 'Income':
-        return Icons.download;
-      default:
-        return Icons.swap_horiz;
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> fetchAllTransactions(String? uid) async {
-    if (uid == null) return [];
-
-    final List<Map<String, dynamic>> transactions = [];
-
-    // Money Request
-    final moneySnap = await FirebaseFirestore.instance
-        .collection('moneyRequests')
-        .where('uid', isEqualTo: uid)
-        .get();
-    for (var doc in moneySnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Money Request',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': data['method'] ?? 'Money',
-        'tmi': data['note'] ?? '', // <-- Add TMI here if exists
-        'isPositive': false,
-      });
-    }
-
-    // Recharge Request
-    final rechargeSnap = await FirebaseFirestore.instance
-        .collection('rechargeRequests')
-        .where('uid', isEqualTo: uid)
-        .get();
-    for (var doc in rechargeSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Recharge Request',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': data['operator'] ?? 'Recharge',
-        'tmi': data['note'] ?? '', // <-- Add TMI here if exists
-        'isPositive': false,
-      });
-    }
-
-    // Offer Buy
-    final offerSnap = await FirebaseFirestore.instance
-        .collection('requests')
-        .doc('regular_buy_requests')
-        .collection('items')
-        .where('userId', isEqualTo: uid)
-        .get();
-    for (var doc in offerSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Offer Buy',
-        'amount': data['price'],
-        'date': formatTimestamp(data['submittedAt']),
-        'type': data['operator'] ?? 'Offer',
-        'tmi': data['details'] ?? '', // <-- Add TMI here if exists
-        'isPositive': false,
-      });
-    }
-
-    // Transfer
-    final transferSnap = await FirebaseFirestore.instance
-        .collection('transfer_requests')
-        .where('userId', isEqualTo: uid)
-        .get();
-    for (var doc in transferSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Transfer',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': 'Balance Transfer',
-        'tmi': data['note'] ?? '',
-        'isPositive': false,
-      });
-    }
-
-    // Admin Added
-    final adminSnap = await FirebaseFirestore.instance
-        .collection('admin_added_balance')
-        .where('userId', isEqualTo: uid)
-        .get();
-    for (var doc in adminSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Admin Added',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': data['note'] ?? 'Added by Admin',
-        'tmi': '',
-        'isPositive': true,
-      });
-    }
-
-    // Income / Received
-    final receivedSnap = await FirebaseFirestore.instance
-        .collection('received_money')
-        .where('userId', isEqualTo: uid)
-        .get();
-    for (var doc in receivedSnap.docs) {
-      final data = doc.data();
-      transactions.add({
-        'name': 'Income',
-        'amount': data['amount'],
-        'date': formatTimestamp(data['timestamp']),
-        'type': data['source'] ?? 'Received',
-        'tmi': '',
-        'isPositive': true,
-      });
-    }
-
-    // Sort all by date (latest first)
-    transactions.sort((a, b) =>
-        DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
-
-    return transactions;
-  }
-
-  String formatTimestamp(Timestamp? timestamp) {
-    if (timestamp == null) return '';
-    final dt = timestamp.toDate();
-    return DateFormat('yyyy-MM-ddTHH:mm:ss')
-        .format(dt); // Parseable for sorting
   }
 }

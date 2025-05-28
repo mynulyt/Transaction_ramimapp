@@ -75,7 +75,7 @@ class _MainScreenState extends State<MainScreen> {
           user != null
               ? buildHomeScreen(user.uid)
               : const Center(child: Text('Please log in.')),
-          const TransactionHistoryPage2(),
+          const UserTransactionHistoryPage(),
           const TallyKhataPage(),
         ],
       ),
