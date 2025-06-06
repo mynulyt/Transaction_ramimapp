@@ -16,8 +16,6 @@ import 'package:ramimapp/button-pages/users_my_user.dart';
 import 'package:ramimapp/widgets/balance_toggole.dart';
 import 'package:ramimapp/widgets/drawer.dart';
 
-import 'package:firebase_core/firebase_core.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
