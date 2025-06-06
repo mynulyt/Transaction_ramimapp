@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Static field to hold last used email
   static String? lastUsedEmail;
 
   // Sign In with Email & Password
