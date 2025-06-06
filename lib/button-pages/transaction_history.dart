@@ -26,7 +26,7 @@ class _UserTransactionHistoryPageState
     }
   }
 
-  // Delete transactions older than 1 month for current user
+  // delete transaction for 1 month
   Future<void> deleteOldTransactions() async {
     if (_currentUser == null) return;
 
