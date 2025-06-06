@@ -25,7 +25,6 @@ class DatabaseService {
   }
 
   Future<List<Map<String, String>>> fetchUniqueOperators() async {
-    // Optional for UI
     return [
       {'name': 'Grameenphone', 'image': 'assets/images/gp.png'},
       {'name': 'Robi', 'image': 'assets/images/robi.png'},
