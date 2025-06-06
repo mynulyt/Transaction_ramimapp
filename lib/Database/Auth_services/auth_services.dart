@@ -8,7 +8,7 @@ class AuthService {
   Future<String> signInWithEmail(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      lastUsedEmail = email; // Save last used email here
+      lastUsedEmail = email;
       return "success";
     } on FirebaseAuthException catch (e) {
       return e.message ?? "An error occurred";
