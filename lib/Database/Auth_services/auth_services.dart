@@ -5,7 +5,6 @@ class AuthService {
 
   static String? lastUsedEmail;
 
-  // Sign In with Email & Password
   Future<String> signInWithEmail(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
