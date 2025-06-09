@@ -228,7 +228,7 @@ class _UserTransactionHistoryPageState
     }
 
     try {
-      // Money Request
+      //Money request query
       final moneyQuery = FirebaseFirestore.instance
           .collection('moneyRequests')
           .where('uid', isEqualTo: uid);
