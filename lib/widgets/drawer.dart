@@ -133,9 +133,6 @@ Widget buildDrawer(BuildContext context) {
               title: const Text('Language'),
               onTap: () => print("Language clicked"),
             ),
-
-// Example user data - replace with your actual user's account number
-
             ListTile(
               leading: const Icon(Icons.send),
               title: const Text('Refer'),
@@ -173,7 +170,6 @@ Widget buildDrawer(BuildContext context) {
                 );
               },
             ),
-
             ListTile(
               leading: const Icon(Icons.share),
               title: const Text('Share'),
