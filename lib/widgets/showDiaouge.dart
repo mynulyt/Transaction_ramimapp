@@ -1,4 +1,3 @@
-// lib/admin_panel/pin_dialog.dart
 import 'package:flutter/material.dart';
 
 Future<String?> showPinDialog(BuildContext context) async {
