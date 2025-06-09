@@ -141,7 +141,6 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 20),
                     _buildPasswordField(),
                     const SizedBox(height: 10),
-                    // Add Remember Me checkbox
                     Row(
                       children: [
                         Checkbox(
