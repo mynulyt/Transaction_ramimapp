@@ -21,7 +21,7 @@ class _UserTransactionHistoryPageState
   void initState() {
     super.initState();
     if (_currentUser != null) {
-      _currentUserEmail = _currentUser!.email;
+      _currentUserEmail = _currentUser.email;
       deleteOldTransactions();
     }
   }
@@ -41,8 +41,8 @@ class _UserTransactionHistoryPageState
 
       final List<QueryDocumentSnapshot> userDocs = snapshot.docs.where((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        return data['uid'] == _currentUser!.uid ||
-            data['userId'] == _currentUser!.uid ||
+        return data['uid'] == _currentUser.uid ||
+            data['userId'] == _currentUser.uid ||
             data['email'] == _currentUserEmail ||
             data['userEmail'] == _currentUserEmail;
       }).toList();
@@ -85,9 +85,9 @@ class _UserTransactionHistoryPageState
             await _firestore.collection('TransactionHistory').get();
 
         final List<QueryDocumentSnapshot> userDocs = snapshot.docs.where((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return data['uid'] == _currentUser!.uid ||
-              data['userId'] == _currentUser!.uid ||
+          final data = doc.data();
+          return data['uid'] == _currentUser.uid ||
+              data['userId'] == _currentUser.uid ||
               data['email'] == _currentUserEmail ||
               data['userEmail'] == _currentUserEmail;
         }).toList();
@@ -111,9 +111,9 @@ class _UserTransactionHistoryPageState
   @override
   Widget build(BuildContext context) {
     if (_currentUser == null) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: Colors.indigo,
-        body: const Center(
+        body: Center(
           child: Text(
             'Please sign in to view transaction history',
             style: TextStyle(color: Colors.white),
@@ -156,8 +156,8 @@ class _UserTransactionHistoryPageState
           // Filter transactions to only show current user's
           final transactions = snapshot.data!.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            return data['uid'] == _currentUser!.uid ||
-                data['userId'] == _currentUser!.uid ||
+            return data['uid'] == _currentUser.uid ||
+                data['userId'] == _currentUser.uid ||
                 data['email'] == _currentUserEmail ||
                 data['userEmail'] == _currentUserEmail;
           }).toList();

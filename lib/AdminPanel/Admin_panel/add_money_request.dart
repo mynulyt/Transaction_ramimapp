@@ -217,7 +217,7 @@ class AddMoneyRequestPage extends StatelessWidget {
           .doc(docId)
           .get();
 
-      final requestData = requestSnapshot.data() as Map<String, dynamic>? ?? {};
+      final requestData = requestSnapshot.data() ?? {};
 
       final userData = userDoc.data() as Map<String, dynamic>;
       final userName = userData['name'] ?? 'Unknown';
