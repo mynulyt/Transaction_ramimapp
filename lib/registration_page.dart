@@ -62,7 +62,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
             const SnackBar(content: Text("Registration successful!")),
           );
 
-          // Navigate to login or home screen
           Navigator.pop(context);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
